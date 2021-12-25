@@ -10,18 +10,17 @@ app.use(cors({
     credentials: true,
     optionsSuccessStatus: 200
 }));
-var authRouter = require('./routes/v1/auth/index');
 
 // unauthenticated
 app.get('/', function (req: express.Request, res: express.Response) {
     res.json({ status: "OK" });
 })
 
-//認証有りAPI
-app.get('/protected', verifyToken, function (req: express.Request, res: express.Response) {
-    res.json("Protected Contents");
-})
+const authRouter = require('./routes/v1/auth/index');
 app.use('/v1/auth/', authRouter);
+
+const usersRouter = require('./routes/v1/users/index');
+app.use('/v1/users/', usersRouter);
 
 app.listen(3000, function () {
     console.log("App start on port 3000");

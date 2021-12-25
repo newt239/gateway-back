@@ -5,9 +5,8 @@ var router = express.Router();
 router.post('/login', function (req: express.Request, res: express.Response) {
     var username: string = req.body.username;
     var password: string = req.body.password;
-
     if (username === "hoge" && password === "password") {
-        const token = jwt.sign({ username: username }, 'my_secret', { expiresIn: '1h' });
+        const token = jwt.sign({ username: username }, process.env.SIGNATURE);
         res.json({
             status: "success",
             token: token
