@@ -9,11 +9,13 @@ router.post('/login', function (req: express.Request, res: express.Response) {
     if (username === "hoge" && password === "password") {
         const token = jwt.sign({ username: username }, 'my_secret', { expiresIn: '1h' });
         res.json({
+            status: "success",
             token: token
         });
     } else {
         res.json({
-            error: "auth error"
+            status: "error",
+            message: "auth error"
         });
     }
 });
