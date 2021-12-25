@@ -10,6 +10,7 @@ function verifyToken(req: express.Request, res: express.Response, next: express.
                     return res.sendStatus(403);
                 } else {
                     res.locals.username = payload.username;
+                    res.locals.password = payload.password;
                     next();
                 }
             });

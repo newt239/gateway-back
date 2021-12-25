@@ -1,7 +1,6 @@
 import express from 'express';
-import verifyToken from 'src/jwt';
 var app = express();
-require('dotenv').config()
+require('dotenv').config();
 const cors = require('cors');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -11,7 +10,6 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 
-// unauthenticated
 app.get('/', function (req: express.Request, res: express.Response) {
     res.json({ status: "OK" });
 })
