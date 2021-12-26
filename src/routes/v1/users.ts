@@ -1,7 +1,7 @@
 import express from 'express';
 import verifyToken from '@/jwt';
 import { connectDb } from '@/db'
-var router = express.Router();
+const router = express.Router();
 
 router.get('/me', verifyToken, function (req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userid, res.locals.password);

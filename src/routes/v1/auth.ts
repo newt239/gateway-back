@@ -1,7 +1,7 @@
 import express from 'express';
 import { connectDb } from '@/db';
-var jwt = require('jsonwebtoken');
-var router = express.Router();
+const router = express.Router();
+const jwt = require('jsonwebtoken');
 
 router.post('/login', function (req: express.Request, res: express.Response) {
     const userid: string = req.body.userid;

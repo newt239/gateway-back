@@ -1,9 +1,11 @@
 import express from 'express';
-var app = express();
 require('dotenv').config();
-const cors = require('cors');
+
+const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const cors = require('cors');
 app.use(cors({
     origin: process.env.ORIGIN,
     credentials: true,
@@ -12,16 +14,9 @@ app.use(cors({
 
 app.get('/', function (req: express.Request, res: express.Response) {
     res.json({ status: "OK" });
-})
+});
 
-const authRouter = require('./routes/v1/auth/index');
-app.use('/v1/auth/', authRouter);
+const v1Router = require('./routes/v1/index');
+app.use('/v1/', v1Router);
 
-const usersRouter = require('./routes/v1/users/index');
-app.use('/v1/users/', usersRouter);
-
-app.listen(3000, function () {
-    console.log("App start on port 3000");
-})
-
-module.exports = app;
+app.listen(3000);
