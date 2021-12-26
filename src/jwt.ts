@@ -9,7 +9,7 @@ function verifyToken(req: express.Request, res: express.Response, next: express.
                 if (err) {
                     return res.sendStatus(403);
                 } else {
-                    res.locals.username = payload.username;
+                    res.locals.userid = payload.userid;
                     res.locals.password = payload.password;
                     next();
                 }
