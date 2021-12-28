@@ -19,4 +19,7 @@ router.use('/guests/', guestsRouter);
 const placesRouter = require('./places');
 router.use('/places/', placesRouter);
 
+const reservationRouter = require('./reservation');
+router.use('/reservation/', reservationRouter);
+
 module.exports = router;
