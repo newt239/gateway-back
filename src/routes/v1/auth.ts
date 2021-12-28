@@ -1,4 +1,5 @@
 import express from 'express';
+import verifyToken from '@/jwt';
 import { connectDb } from '@/db';
 const router = express.Router();
 const jwt = require('jsonwebtoken');
@@ -11,16 +12,36 @@ router.post('/login', function (req: express.Request, res: express.Response) {
         if (err) {
             res.json({
                 status: "error",
-                message: "username or password were incorrect.",
-                timestamp: Date.now()
+                message: "username or password were incorrect."
             });
         } else {
             const token = jwt.sign({ userid: userid, password: password }, process.env.SIGNATURE);
             res.json({
                 status: "success",
-                token: token,
-                timestamp: Date.now()
+                token: token
             });
+        };
+    });
+});
+
+router.get('/me', verifyToken, function (req: express.Request, res: express.Response) {
+    const connection = connectDb(res.locals.userid, res.locals.password);
+    const sql = `SELECT * FROM gateway.user WHERE userid='${res.locals.userid}'`;
+    connection.query(sql, function (err: any, result: any) {
+        if (err) {
+            return res.json(err);
+        } else {
+            return res.json({
+                status: "success",
+                data: {
+                    userid: result[0].userid,
+                    display_name: result[0].display_name,
+                    user_type: result[0].user_type,
+                    role: result[0].role,
+                    available: result[0].available,
+                    note: result[0].note
+                }
+            })
         };
     });
 });
