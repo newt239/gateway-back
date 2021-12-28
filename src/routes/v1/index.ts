@@ -16,4 +16,7 @@ router.use('/activity/', activityRouter);
 const guestsRouter = require('./guests');
 router.use('/guests/', guestsRouter);
 
+const placesRouter = require('./places');
+router.use('/places/', placesRouter);
+
 module.exports = router;
