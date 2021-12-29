@@ -11,7 +11,7 @@ router.post('/:activity_type', verifyToken, function (req: express.Request, res:
         const place_id: string = req.body.place_id;
         const date = new Date();
         const activity_id: string = date.getTime().toString(16) + Math.floor(Math.random() * 10).toString(16);
-        const timestamp = date.toISOString().slice(0, 19).replace('T', ' ');
+        const timestamp = date.toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
         const sql: string = `INSERT INTO gateway.activity (activity_id, guest_id, place_id, userid, activity_type, timestamp, available) VALUES ('${activity_id}', '${guest_id}', '${place_id}', '${res.locals.userid}', '${activity_type}', '${timestamp}', 1)`;
         connection.query(sql, function (err: any, result: any) {
             if (err) {

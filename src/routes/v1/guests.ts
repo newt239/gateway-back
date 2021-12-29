@@ -36,7 +36,8 @@ router.post('/regist', verifyToken, function (req: express.Request, res: express
         const reservation_id: string | null = eachRegist.reservation_id;
         // TODO: reservation tableとapiを作り次第修正
         const guest_type: string = "student";
-        sql += `INSERT INTO gateway.guest (guest_id, guest_type, reservation_id, userid, regist_at) VALUES ('${guest_id}' '${guest_type}' '${reservation_id}' '${res.locals.userid}', '${new Date().getTime().toString(16) + Math.floor(Math.random() * 10).toString(16)}');`;
+        const timestamp = new Date().toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
+        sql += `INSERT INTO gateway.guest (guest_id, guest_type, reservation_id, userid, regist_at) VALUES ('${guest_id}' '${guest_type}' '${reservation_id}' '${res.locals.userid}', '${timestamp}');`;
     }
     console.log(sql);
     connection.query(sql, function (err: any, result: any) {
@@ -55,7 +56,8 @@ router.post('/revoke', verifyToken, function (req: express.Request, res: express
     let sql: string = "";
     for (const eachRevoke of req.body) {
         const guest_id: string = eachRevoke.guest_id;
-        sql += `UPDATE gateway.guest SET revoke_at=${new Date().getTime().toString(16) + Math.floor(Math.random() * 10).toString(16)} WHERE guest_id='${guest_id}'`;
+        const timestamp = new Date().toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
+        sql += `UPDATE gateway.guest SET revoke_at=${timestamp} WHERE guest_id='${guest_id}'`;
     }
     connection.query(sql, function (err: any, result: any) {
         if (err) {
