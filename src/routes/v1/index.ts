@@ -16,8 +16,8 @@ router.use('/activity/', activityRouter);
 const guestsRouter = require('./guests');
 router.use('/guests/', guestsRouter);
 
-const placesRouter = require('./places');
-router.use('/places/', placesRouter);
+const exhibitRouter = require('./exhibit');
+router.use('/exhibit/', exhibitRouter);
 
 const reservationRouter = require('./reservation');
 router.use('/reservation/', reservationRouter);
