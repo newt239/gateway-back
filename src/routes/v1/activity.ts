@@ -18,10 +18,13 @@ router.post('/:activity_type', verifyToken, function (req: express.Request, res:
                 return res.json(err);
             } else {
                 return res.json({
-                    status: "success"
+                    status: "success",
+                    data: { activity_id: result[0].activity_id }
                 });
             };
         });
+    } else {
+        res.json({ status: "error", message: "you posted invaild activity_type" })
     }
 });
 

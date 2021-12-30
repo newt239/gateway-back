@@ -21,8 +21,7 @@ router.get('/heat', verifyToken, function (req: express.Request, res: express.Re
 
 router.get('/info/', verifyToken, function (req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userid, res.locals.password);
-    const exhibit_id: string = req.params.exhibit_id;
-    const sql: string = `SELECT exhibit_id, exhibit_name FROM gateway.exhibit WHERE exhibit_id='${exhibit_id}'`;
+    const sql: string = `SELECT exhibit_id, exhibit_name FROM gateway.exhibit`;
     connection.query(sql, function (err: any, result: any) {
         if (err) {
             return res.json(err);
@@ -71,6 +70,7 @@ router.get('/crowd/', verifyToken, function (req: express.Request, res: express.
                 } else {
                     const addtime = ctime.setHours(ctime.getHours() + 1);
                     pushList.push({ time: addtime, count: 0 });
+                    break;
                 }
             }
             console.log(accumulator);
