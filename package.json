@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node --files -r tsconfig-paths/register src/index.ts"
+    "start": "ts-node --files -r tsconfig-paths/register src/index.ts",
+    "dev": "nodemon -L"
   },
   "keywords": [],
   "author": "",
