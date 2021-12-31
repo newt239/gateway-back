@@ -24,7 +24,7 @@ router.get('/info/', verifyToken, function (req: express.Request, res: express.R
     const sql: string = `SELECT exhibit_id, exhibit_name FROM gateway.exhibit`;
     connection.query(sql, function (err: any, result: any) {
         if (err) {
-            return res.json(err);
+            return res.status(400).json(err);
         } else {
             return res.json({
                 status: "success",
@@ -106,7 +106,7 @@ router.get('/current/', verifyToken, function (req: express.Request, res: expres
 router.get('/current/:exhibit_id', verifyToken, function (req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userid, res.locals.password);
     const exhibit_id: string = req.params.exhibit_id;
-    const sql: string = `SELECT * FROM gateway.guest WHERE exhibit_id='${exhibit_id}';`;
+    const sql: string = `SELECT guest_id AS id, guest_type FROM gateway.guest WHERE exhibit_id='${exhibit_id}';`;
     connection.query(sql, function (err: any, result: object[]) {
         if (err) {
             res.json(err);
