@@ -88,4 +88,35 @@ router.get('/crowd/', verifyToken, function (req: express.Request, res: express.
     });
 });
 
+router.get('/current/', verifyToken, function (req: express.Request, res: express.Response) {
+    const connection = connectDb(res.locals.userid, res.locals.password);
+    const sql: string = `SELECT exhibit_id, count(*) FROM gateway.guest GROUP BY exhibit_id WHERE exhibit_id IS NOT NULL;`;
+    connection.query(sql, function (err: any, result: any) {
+        if (err) {
+            return res.json(err);
+        } else {
+            return res.json({
+                status: "success",
+                data: result
+            });
+        };
+    });
+});
+
+router.get('/current/:exhibit_id', verifyToken, function (req: express.Request, res: express.Response) {
+    const connection = connectDb(res.locals.userid, res.locals.password);
+    const exhibit_id: string = req.params.exhibit_id;
+    const sql: string = `SELECT * FROM gateway.guest WHERE exhibit_id='${exhibit_id}';`;
+    connection.query(sql, function (err: any, result: object[]) {
+        if (err) {
+            res.json(err);
+        } else {
+            res.json({
+                status: "success",
+                data: result
+            });
+        };
+    });
+});
+
 module.exports = router;
