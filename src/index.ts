@@ -6,8 +6,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const cors = require('cors');
+
+const originList = process.env.ORIGIN?.split(',') || [];
 app.use(cors({
-    origin: process.env.ORIGIN,
+    origin: (origin: string, callback: any) => {
+        if (originList.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    },
     credentials: true,
     optionsSuccessStatus: 200
 }));
