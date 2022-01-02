@@ -9,21 +9,19 @@ router.get('/info/:guest_id', verifyToken, function (req: express.Request, res: 
     const sql: string = `SELECT * FROM gateway.guest WHERE guest_id='${guest_id}'`;
     connection.query(sql, function (err: any, result: any) {
         if (err) {
-            return res.json(err);
+            return res.status(400).json(err);
         } else {
-            return res.json({
-                status: "success",
-                data: {
-                    guest_id: result[0].guest_id,
-                    guest_type: result[0].guest_type,
-                    reservation_id: result[0].reservation_id,
-                    exhibit_id: result[0].exhibit_id,
-                    part: result[0].part,
-                    available: result[0].available,
-                    note: result[0].note,
-                    regist_at: result[0].regist_at,
-                }
-            });
+            if (result.length === 0) {
+                return res.json({
+                    status: "error",
+                    message: `${guest_id}というゲストは存在しません。`
+                });
+            } else {
+                return res.json({
+                    status: "success",
+                    data: result[0]
+                });
+            }
         };
     });
 });

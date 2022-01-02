@@ -13,20 +13,20 @@ router.post('/:activity_type', verifyToken, function (req: express.Request, res:
         const date = new Date();
         const activity_id: string = date.getTime().toString(16) + Math.floor(Math.random() * 10).toString(16);
         const timestamp = date.toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
-        const sql: string = `INSERT INTO gateway.activity (activity_id, guest_id, guest_type exhibit_id, userid, activity_type, timestamp, available) VALUES ('${activity_id}', '${guest_id}', '${guest_type}', '${exhibit_id}', '${res.locals.userid}', '${activity_type}', '${timestamp}', 1)`;
+        const sql: string = `INSERT INTO gateway.activity (activity_id, guest_id, guest_type, exhibit_id, userid, activity_type, timestamp, available) VALUES ('${activity_id}', '${guest_id}', '${guest_type}', '${exhibit_id}', '${res.locals.userid}', '${activity_type}', '${timestamp}', 1)`;
         connection.query(sql, function (err: any, result: any) {
             if (err) {
-                return res.json(err);
+                return res.status(400).json(err);
             } else {
                 return res.json({
                     status: "success",
-                    data: { activity_id: result[0].activity_id }
+                    data: { activity_id: activity_id }
                 });
             };
         });
     } else {
         res.json({ status: "error", message: "you posted invaild activity_type" })
-    }
+    };
 });
 
 module.exports = router;
