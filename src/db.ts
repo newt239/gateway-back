@@ -9,4 +9,4 @@ export const connectDb = (userid: string, password: string) => {
         database: "gateway"
     });
     return connection;
-}
+};

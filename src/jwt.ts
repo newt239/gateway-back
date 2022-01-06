@@ -12,13 +12,13 @@ function verifyToken(req: express.Request, res: express.Response, next: express.
                     res.locals.userid = payload.userid;
                     res.locals.password = payload.password;
                     next();
-                }
+                };
             });
         } else {
             res.json({ error: "header format error" });
-        }
+        };
     } else {
         res.json({ error: "header error" });
-    }
+    };
 }
 export default verifyToken;

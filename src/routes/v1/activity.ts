@@ -1,11 +1,11 @@
 import express from 'express';
 import verifyToken from '@/jwt';
-import { connectDb } from '@/db'
+import { connectDb } from '@/db';
 const router = express.Router();
 
 router.post('/:activity_type', verifyToken, function (req: express.Request, res: express.Response) {
     const activity_type: string = req.params.activity_type;
-    if (activity_type === "enter" || activity_type === "exit" || activity_type === "pass") {
+    if (["enter", "exit", "pass"].indexOf(activity_type, -1)) {
         const connection = connectDb(res.locals.userid, res.locals.password);
         const guest_id: string = req.body.guest_id;
         const guest_type: string = req.body.guest_type;
@@ -25,7 +25,7 @@ router.post('/:activity_type', verifyToken, function (req: express.Request, res:
             };
         });
     } else {
-        res.json({ status: "error", message: "you posted invaild activity_type" })
+        res.json({ status: "error", message: "you posted invaild activity_type" });
     };
 });
 

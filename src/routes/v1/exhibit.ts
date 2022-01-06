@@ -1,6 +1,6 @@
 import express from 'express';
 import verifyToken from '@/jwt';
-import { connectDb } from '@/db'
+import { connectDb } from '@/db';
 const router = express.Router();
 
 router.get('/heat', verifyToken, function (req: express.Request, res: express.Response) {
@@ -71,8 +71,8 @@ router.get('/crowd/', verifyToken, function (req: express.Request, res: express.
                     const addtime = ctime.setHours(ctime.getHours() + 1);
                     pushList.push({ time: addtime, count: 0 });
                     break;
-                }
-            }
+                };
+            };
             console.log(accumulator);
             return accumulator.concat([pushList]);
         }, []);

@@ -1,6 +1,6 @@
 import express from 'express';
 import verifyToken from '@/jwt';
-import { connectDb } from '@/db'
+import { connectDb } from '@/db';
 const router = express.Router();
 
 router.get('/info/:guest_id', verifyToken, function (req: express.Request, res: express.Response) {
@@ -21,7 +21,7 @@ router.get('/info/:guest_id', verifyToken, function (req: express.Request, res: 
                     status: "success",
                     data: result[0]
                 });
-            }
+            };
         };
     });
 });
@@ -56,7 +56,7 @@ router.post('/revoke', verifyToken, function (req: express.Request, res: express
         const guest_id: string = eachRevoke.guest_id;
         const timestamp = new Date().toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
         sql += `UPDATE gateway.guest SET revoke_at=${timestamp} WHERE guest_id='${guest_id}'`;
-    }
+    };
     connection.query(sql, function (err: any, result: any) {
         if (err) {
             return res.json(err);
