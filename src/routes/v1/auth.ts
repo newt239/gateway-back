@@ -1,6 +1,7 @@
 import express from 'express';
 import verifyToken from '@/jwt';
 import { connectDb } from '@/db';
+import { QueryError } from 'mysql2';
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
@@ -27,7 +28,7 @@ router.post('/login', function (req: express.Request, res: express.Response) {
 router.get('/me', verifyToken, function (req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userid, res.locals.password);
     const sql = `SELECT * FROM gateway.user WHERE userid='${res.locals.userid}'`;
-    connection.query(sql, function (err: any, result: any) {
+    connection.query(sql, function (err: QueryError, result: any) {
         if (err) {
             return res.json(err);
         } else {
