@@ -28,16 +28,16 @@ router.get('/info/:guest_id', verifyToken, function (req: express.Request, res: 
 
 router.post('/regist', verifyToken, function (req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userid, res.locals.password);
-    let sql: string = "";
+    let sql: string = "INSERT INTO gateway.guest (guest_id, guest_type, reservation_id, userid, regist_at, available) VALUES";
     for (const eachRegist of req.body) {
         const guest_id: string = eachRegist.guest_id;
         const reservation_id: string | null = eachRegist.reservation_id;
         // TODO: reservation tableとapiを作り次第修正
         const guest_type: string = "student";
         const timestamp = new Date().toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
-        sql += `INSERT INTO gateway.guest (guest_id, guest_type, reservation_id, userid, regist_at) VALUES ('${guest_id}' '${guest_type}' '${reservation_id}' '${res.locals.userid}', '${timestamp}');`;
+        sql += `('${guest_id}', '${guest_type}', '${reservation_id}', '${res.locals.userid}', '${timestamp}', 1),`;
     }
-    console.log(sql);
+    sql = sql.slice(0, -1) + ";";
     connection.query(sql, function (err: any, result: any) {
         if (err) {
             return res.json(err);
