@@ -60,13 +60,12 @@ router.post('/regist', verifyToken, function (req: express.Request, res: express
 });
 
 router.post('/revoke', verifyToken, function (req: express.Request, res: express.Response) {
+    // TODO: 同時にactivity tableへの追加も行う...？
     const connection = connectDb(res.locals.userid, res.locals.password);
-    let sql: string = "";
-    for (const eachRevoke of req.body) {
-        const guest_id: string = eachRevoke.guest_id;
-        const timestamp = new Date().toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
-        sql += `UPDATE gateway.guest SET revoke_at=${timestamp} WHERE guest_id='${guest_id}'`;
-    };
+    const guest_id: string = req.body.guest_id;
+    const guest_type: string = req.body.guest_type;
+    const timestamp = new Date().toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
+    const sql: string = `UPDATE gateway.guest SET revoke_at='${timestamp}' WHERE guest_id='${guest_id}';`;
     connection.query(sql, function (err: any, result: any) {
         if (err) {
             return res.json(err);
