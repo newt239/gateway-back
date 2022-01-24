@@ -7,7 +7,8 @@ export const connectDb = (userid: string, password: string) => {
         host: process.env.MYSQL_DATABASE_HOST,
         user: userid,
         password: password,
-        database: "gateway"
+        database: "gateway",
+        multipleStatements: true
     });
     return connection;
 };

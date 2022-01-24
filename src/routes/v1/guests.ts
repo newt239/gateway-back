@@ -33,14 +33,16 @@ router.post('/regist', verifyToken, function (req: express.Request, res: express
     for (const eachRegist of req.body) {
         const guest_id: string = eachRegist.guest_id;
         const reservation_id: string | null = eachRegist.reservation_id;
-        // TODO: reservation tableとapiを作り次第修正
         const guest_type: string = "student";
         const timestamp = new Date().toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
         sql += `('${guest_id}', '${guest_type}', '${reservation_id}', '${res.locals.userid}', '${timestamp}', 1),`;
     }
     sql = sql.slice(0, -1) + ";";
+    // 登録したguestの数だけreservation tableのregistedの数を増加させる
+    sql += `UPDATE gateway.reservation SET registed = registed + ${req.body.length} WHERE reservation_id='${req.body[0].reservation_id}';`
     connection.query(sql, function (err: QueryError, result: any) {
         if (err) {
+            console.log(err);
             if (err.code === "ER_DUP_ENTRY") {
                 return res.json({
                     status: "error",
