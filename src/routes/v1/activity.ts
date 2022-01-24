@@ -33,6 +33,7 @@ router.post('/:activity_type', verifyToken, function (req: express.Request, res:
                 });
             };
         });
+        connection.end();
     } else {
         res.json({ status: "error", message: "you posted invaild activity_type" });
     };

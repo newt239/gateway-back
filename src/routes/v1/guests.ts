@@ -25,6 +25,7 @@ router.get('/info/:guest_id', verifyToken, function (req: express.Request, res: 
             };
         };
     });
+    connection.end();
 });
 
 router.post('/regist', verifyToken, function (req: express.Request, res: express.Response) {
@@ -57,6 +58,7 @@ router.post('/regist', verifyToken, function (req: express.Request, res: express
             });
         };
     });
+    connection.end();
 });
 
 router.post('/revoke', verifyToken, function (req: express.Request, res: express.Response) {
@@ -75,6 +77,7 @@ router.post('/revoke', verifyToken, function (req: express.Request, res: express
             });
         };
     });
+    connection.end();
 });
 
 module.exports = router;

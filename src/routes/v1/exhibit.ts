@@ -2,6 +2,7 @@ import express from 'express';
 import verifyToken from '@/jwt';
 import { connectDb } from '@/db';
 import { QueryError } from 'mysql2';
+import triageError from '@/error';
 const router = express.Router();
 
 router.get('/heat', verifyToken, function (req: express.Request, res: express.Response) {
@@ -10,7 +11,7 @@ router.get('/heat', verifyToken, function (req: express.Request, res: express.Re
     const sql: string = `SELECT * FROM gateway.guest WHERE guest_id='${guest_id}'`;
     connection.query(sql, function (err: QueryError, result: any) {
         if (err) {
-            return res.json(err);
+            return triageError(err);
         } else {
             return res.json({
                 status: "success",
@@ -18,6 +19,7 @@ router.get('/heat', verifyToken, function (req: express.Request, res: express.Re
             });
         };
     });
+    connection.end();
 });
 
 router.get('/info/', verifyToken, function (req: express.Request, res: express.Response) {
@@ -33,6 +35,7 @@ router.get('/info/', verifyToken, function (req: express.Request, res: express.R
             });
         };
     });
+    connection.end();
 });
 
 router.get('/info/:exhibit_id', verifyToken, function (req: express.Request, res: express.Response) {
@@ -51,6 +54,7 @@ router.get('/info/:exhibit_id', verifyToken, function (req: express.Request, res
             });
         };
     });
+    connection.end();
 });
 
 router.get('/crowd/', verifyToken, function (req: express.Request, res: express.Response) {
@@ -87,6 +91,7 @@ router.get('/crowd/', verifyToken, function (req: express.Request, res: express.
             });
         };
     });
+    connection.end();
 });
 
 router.get('/current/', verifyToken, function (req: express.Request, res: express.Response) {
@@ -102,6 +107,7 @@ router.get('/current/', verifyToken, function (req: express.Request, res: expres
             });
         };
     });
+    connection.end();
 });
 
 router.get('/current/:exhibit_id', verifyToken, function (req: express.Request, res: express.Response) {
@@ -118,6 +124,7 @@ router.get('/current/:exhibit_id', verifyToken, function (req: express.Request, 
             });
         };
     });
+    connection.end();
 });
 
 module.exports = router;

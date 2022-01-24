@@ -26,6 +26,7 @@ router.get('/:reservation_id', verifyToken, function (req: express.Request, res:
             };
         };
     });
+    connection.end();
 });
 
 module.exports = router;

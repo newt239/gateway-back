@@ -23,6 +23,7 @@ router.post('/login', function (req: express.Request, res: express.Response) {
             });
         };
     });
+    connection.end();
 });
 
 router.get('/me', verifyToken, function (req: express.Request, res: express.Response) {
@@ -45,6 +46,7 @@ router.get('/me', verifyToken, function (req: express.Request, res: express.Resp
             })
         };
     });
+    connection.end();
 });
 
 module.exports = router;
