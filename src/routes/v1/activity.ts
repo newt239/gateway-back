@@ -13,7 +13,8 @@ router.post('/:activity_type', verifyToken, function (req: express.Request, res:
         const date = new Date();
         const activity_id: string = date.getTime().toString(16) + Math.floor(Math.random() * 10).toString(16);
         const timestamp = date.toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
-        const sql: string = `INSERT INTO gateway.activity (activity_id, guest_id, guest_type, exhibit_id, userid, activity_type, timestamp, available) VALUES ('${activity_id}', '${guest_id}', '${guest_type}', '${exhibit_id}', '${res.locals.userid}', '${activity_type}', '${timestamp}', 1)`;
+        let sql: string = `INSERT INTO gateway.activity (activity_id, guest_id, guest_type, exhibit_id, userid, activity_type, timestamp, available) VALUES ('${activity_id}', '${guest_id}', '${guest_type}', '${exhibit_id}', '${res.locals.userid}', '${activity_type}', '${timestamp}', 1)`;
+        sql += `UPDATE gateway.guest SET exhibit_id='${activity_type === "enter" ? exhibit_id : ""} WHERE guest_id='${guest_id}''`
         connection.query(sql, function (err: any, result: any) {
             if (err) {
                 return res.status(400).json(err);
