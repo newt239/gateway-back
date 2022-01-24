@@ -41,7 +41,14 @@ router.post('/regist', verifyToken, function (req: express.Request, res: express
     sql = sql.slice(0, -1) + ";";
     connection.query(sql, function (err: QueryError, result: any) {
         if (err) {
-            return res.json(err);
+            if (err.code === "ER_DUP_ENTRY") {
+                return res.json({
+                    status: "error",
+                    message: "guest_id is already registered."
+                });
+            } else {
+                return res.json(err);
+            }
         } else {
             return res.json({
                 status: "success"
