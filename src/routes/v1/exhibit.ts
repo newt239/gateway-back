@@ -91,7 +91,7 @@ router.get('/crowd/', verifyToken, function (req: express.Request, res: express.
 
 router.get('/current/', verifyToken, function (req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userid, res.locals.password);
-    const sql: string = `SELECT exhibit_id, count(*) FROM gateway.guest GROUP BY exhibit_id WHERE exhibit_id IS NOT NULL;`;
+    const sql: string = `SELECT exhibit_id, count(*) FROM gateway.session GROUP BY exhibit_id WHERE exhibit_id IS NOT NULL;`;
     connection.query(sql, function (err: any, result: any) {
         if (err) {
             return res.json(err);
@@ -107,7 +107,7 @@ router.get('/current/', verifyToken, function (req: express.Request, res: expres
 router.get('/current/:exhibit_id', verifyToken, function (req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userid, res.locals.password);
     const exhibit_id: string = req.params.exhibit_id;
-    const sql: string = `SELECT guest_id AS id, guest_type FROM gateway.guest WHERE exhibit_id='${exhibit_id}';`;
+    const sql: string = `SELECT guest_id AS id, guest_type, enter_at FROM gateway.session WHERE exhibit_id='${exhibit_id}' AND exit_at IS NULL;`;
     connection.query(sql, function (err: any, result: object[]) {
         if (err) {
             res.json(err);
