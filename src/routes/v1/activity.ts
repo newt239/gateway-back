@@ -14,7 +14,7 @@ router.post('/:activity_type', verifyToken, function (req: express.Request, res:
         const activity_id: string = date.getTime().toString(16) + Math.floor(Math.random() * 10).toString(16);
         const timestamp = date.toLocaleString('ja-JP').slice(0, 19).replace('T', ' ');
         let sql: string = `INSERT INTO gateway.activity (activity_id, guest_id, guest_type, exhibit_id, userid, activity_type, timestamp, available) VALUES ('${activity_id}', '${guest_id}', '${guest_type}', '${exhibit_id}', '${res.locals.userid}', '${activity_type}', '${timestamp}', 1);`;
-        sql += `UPDATE gateway.guest SET exhibit_id=${activity_type === "'enter'" ? exhibit_id : "NULL"} WHERE guest_id='${guest_id}';`
+        sql += `UPDATE gateway.guest SET exhibit_id=${activity_type === "enter" ? "'" + exhibit_id + "'" : "NULL"} WHERE guest_id='${guest_id}';`
         if (activity_type === "enter") {
             sql += `INSERT INTO gateway.session (session_id, exhibit_id, guest_id, guest_type, enter_at, available) VALUES ('s${activity_id}', '${exhibit_id}', '${guest_id}', '${guest_type}', '${timestamp}', 1);`
         } else if (activity_type === "exit") {
