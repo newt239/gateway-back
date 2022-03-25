@@ -8,7 +8,7 @@ app.use(express.urlencoded({ extended: true }));
 const cors = require('cors');
 
 const originList = process.env.ORIGIN?.split(',') || [];
-app.use(cors({
+const corsConfig = {
     origin: (origin: string, callback: any) => {
         if (originList.indexOf(origin) !== -1) {
             callback(null, true)
@@ -18,7 +18,9 @@ app.use(cors({
     },
     credentials: true,
     optionsSuccessStatus: 200
-}));
+}
+
+app.use(cors(corsConfig));
 
 app.get('/', function (req: express.Request, res: express.Response) {
     res.json({ status: "OK" });

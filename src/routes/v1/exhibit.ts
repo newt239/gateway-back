@@ -60,7 +60,9 @@ router.get('/info/:exhibit_id', verifyToken, function (req: express.Request, res
 router.get('/enter-chart/:exhibit_id', verifyToken, function (req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userid, res.locals.password);
     const exhibit_id: string = req.params.exhibit_id;
-    const sql: string = `SELECT timestamp(DATE_FORMAT(enter_at, '%Y-%m-%d %H:00:00')) AS time, COUNT(*) AS count FROM gateway.session WHERE exhibit_id='${exhibit_id}' GROUP BY DATE_FORMAT(enter_at, '%Y%m%d%H');`;
+    const day: string = req.query.day as string;
+    const sql: string = `SELECT timestamp(DATE_FORMAT(enter_at, '%Y-%m-%d %H:00:00')) AS time, COUNT(*) AS count FROM gateway.session WHERE exhibit_id='${exhibit_id}' AND DATE(enter_at) = '${day}' GROUP BY DATE_FORMAT(enter_at, '%Y%m%d%H');`;
+    console.log(sql);
     connection.query(sql, function (err: any, result: any) {
         console.log(result);
         if (err) {

@@ -46,6 +46,7 @@ router.get('/me', verifyToken, function (req: express.Request, res: express.Resp
     const sql = `SELECT * FROM gateway.user WHERE userid='${res.locals.userid}'`;
     connection.query(sql, function (err: QueryError, result: any) {
         if (err) {
+            console.log(res)
             return res.json(err);
         } else {
             return res.json({
