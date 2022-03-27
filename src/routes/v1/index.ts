@@ -22,4 +22,7 @@ router.use('/exhibit/', exhibitRouter);
 const reservationRouter = require('./reservation');
 router.use('/reservation/', reservationRouter);
 
+const adminRouter = require('./admin');
+router.use('/admin/', adminRouter);
+
 module.exports = router;
