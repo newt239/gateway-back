@@ -81,7 +81,7 @@ router.post('/delete-user', verifyToken, function (req: express.Request, res: ex
     } else {
       return res.json({
         status: "success",
-        data: result
+        userId: req.body.userId
       });
     }
   });
