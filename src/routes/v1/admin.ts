@@ -1,6 +1,7 @@
 import express from 'express';
 import verifyToken from '@/jwt';
 import { connectDb } from '@/db';
+import { QueryError } from 'mysql2';
 const router = express.Router();
 
 router.post('/create', verifyToken, function (req: express.Request, res: express.Response) {
@@ -25,7 +26,7 @@ router.post('/create', verifyToken, function (req: express.Request, res: express
   };
   sql += `FLUSH PRIVILEGES;`;
   sql += `INSERT INTO gateway.user (user_id, display_name, user_type, created_by, available) VALUES ('${userId}', '${req.body.displayName}', '${req.body.userType}', '${res.locals.userId}', 1);`
-  connection.query(sql, function (err: any, result: any) {
+  connection.query(sql, function (err: QueryError, result: any) {
     if (err) {
       if (err.code === "ER_CANNOT_USER") {
         return res.json({
@@ -46,6 +47,26 @@ router.post('/create', verifyToken, function (req: express.Request, res: express
       });
     }
   });
+  connection.end();
+});
+
+router.get('/created-by-me', verifyToken, function (req: express.Request, res: express.Response) {
+  const connection = connectDb(res.locals.userId, res.locals.password);
+  const sql: string = `SELECT user_id, display_name, user_type FROM gateway.user WHERE created_by='${res.locals.userId}'`;
+  connection.query(sql, function (err: QueryError, result: any) {
+    if (err) {
+      return res.json({
+        status: "error",
+        message: err.message
+      })
+    } else {
+      return res.json({
+        status: "success",
+        data: result
+      });
+    }
+  });
+  connection.end();
 });
 
 module.exports = router;
