@@ -5,7 +5,7 @@ import { QueryError } from 'mysql2';
 const router = express.Router();
 
 router.get('/:reservation_id', verifyToken, function (req: express.Request, res: express.Response) {
-    const connection = connectDb(res.locals.userid, res.locals.password);
+    const connection = connectDb(res.locals.userId, res.locals.password);
     const reservation_id: string = req.params.reservation_id;
     const sql: string = `SELECT * FROM gateway.reservation WHERE reservation_id='${reservation_id}'`;
     connection.query(sql, function (err: QueryError, result: any) {
