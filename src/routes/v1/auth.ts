@@ -28,7 +28,7 @@ router.post('/login', function (req: express.Request, res: express.Response) {
                 status: "success",
                 token: token,
                 profile: {
-                    userId: result[0].userId,
+                    userId: result[0].user_id,
                     display_name: result[0].display_name,
                     user_type: result[0].user_type,
                     role: result[0].role,
@@ -52,7 +52,7 @@ router.get('/me', verifyToken, function (req: express.Request, res: express.Resp
             return res.json({
                 status: "success",
                 profile: {
-                    userId: result[0].userId,
+                    userId: result[0].user_id,
                     display_name: result[0].display_name,
                     user_type: result[0].user_type,
                     role: result[0].role,
