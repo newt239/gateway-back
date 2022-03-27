@@ -58,7 +58,26 @@ router.get('/created-by-me', verifyToken, function (req: express.Request, res: e
       return res.json({
         status: "error",
         message: err.message
-      })
+      });
+    } else {
+      return res.json({
+        status: "success",
+        data: result
+      });
+    }
+  });
+  connection.end();
+});
+
+router.post('/delete-user', verifyToken, function (req: express.Request, res: express.Response) {
+  const connection = connectDb(res.locals.userId, res.locals.password);
+  const sql: string = `DROP USER '${req.body.userId}'@'localhost'; DELETE FROM gateway.user WHERE user_id='${req.body.userId}' AND created_by='${res.locals.userId}'; `;
+  connection.query(sql, function (err: QueryError, result: any) {
+    if (err) {
+      return res.json({
+        status: "error",
+        message: err.message
+      });
     } else {
       return res.json({
         status: "success",
