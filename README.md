@@ -26,3 +26,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
+
+```
+pm2 start ts-node -- --type-check -r tsconfig-paths/register src/index.ts
+```
