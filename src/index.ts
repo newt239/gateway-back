@@ -1,6 +1,4 @@
 import express from 'express';
-const fs = require('fs');
-const https = require('https');
 require('dotenv').config();
 
 
@@ -32,14 +30,4 @@ app.get('/', function (req, res) {
 const v1Router = require('./routes/v1/index');
 app.use('/v1/', v1Router);
 
-const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/api.sh-fes.com/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/api.sh-fes.com/fullchain.pem'),
-}
-
-const server = https.createServer(options, app);
-server.listen(443, () => {
-    process.setuid && process.setuid('node');
-    console.log(`user was replaced to uid: ${process.getuid()} ('node')`);
-    console.log('example app listening on port 443!');
-});
+app.listen(3000);
