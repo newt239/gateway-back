@@ -5,14 +5,30 @@ import { QueryError } from 'mysql2';
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
+type userTypeProp =
+    | "admin"
+    | "moderator"
+    | "executive"
+    | "exhibit"
+    | "analysis"
+    | "temporary";
+
+interface sqlAuthLoginResultProp {
+    user_id: string;
+    display_name: string;
+    user_type: userTypeProp;
+    role: string;
+    available: number;
+    note: string;
+};
+
 router.post('/login', function (req: express.Request, res: express.Response) {
     const userId: string = req.body.userId;
     const password: string = req.body.password;
     const connection = connectDb(userId, password);
-    connection.connect(function (err) {
+    connection.connect((err) => {
         if (err) {
-            res.json({
-                status: "error",
+            res.status(400).json({
                 message: "username or password were incorrect."
             });
             return;
@@ -20,19 +36,18 @@ router.post('/login', function (req: express.Request, res: express.Response) {
     });
     const token = jwt.sign({ userId: userId, password: password }, process.env.SIGNATURE);
     const sql = `SELECT * FROM gateway.user WHERE user_id='${userId}'`;
-    connection.query(sql, function (err: QueryError, result: any) {
-        if (err) {
+    connection.query(sql, (err: QueryError, result: sqlAuthLoginResultProp[]) => {
+        if (err || result.length == 0) {
             res.json(err);
         } else {
             return res.json({
-                status: "success",
                 token: token,
                 profile: {
-                    userId: result[0].user_id,
+                    user_id: result[0].user_id,
                     display_name: result[0].display_name,
                     user_type: result[0].user_type,
                     role: result[0].role,
-                    available: result[0].available,
+                    available: result[0].available === 0 ? true : false,
                     note: result[0].note
                 }
             });
@@ -41,22 +56,21 @@ router.post('/login', function (req: express.Request, res: express.Response) {
     connection.end();
 });
 
-router.get('/me', verifyToken, function (req: express.Request, res: express.Response) {
+router.get('/me', verifyToken, function (_req: express.Request, res: express.Response) {
     const connection = connectDb(res.locals.userId, res.locals.password);
     const sql = `SELECT * FROM gateway.user WHERE user_id='${res.locals.userId}'`;
-    connection.query(sql, function (err: QueryError, result: any) {
+    connection.query(sql, function (err: QueryError, result: sqlAuthLoginResultProp[]) {
         if (err) {
-            console.log(res)
-            return res.json(err);
+            return res.status(400).json(err);
         } else {
             return res.json({
                 status: "success",
                 profile: {
-                    userId: result[0].user_id,
+                    user_id: result[0].user_id,
                     display_name: result[0].display_name,
                     user_type: result[0].user_type,
                     role: result[0].role,
-                    available: result[0].available,
+                    available: result[0].available === 0 ? true : false,
                     note: result[0].note
                 }
             });
@@ -65,4 +79,4 @@ router.get('/me', verifyToken, function (req: express.Request, res: express.Resp
     connection.end();
 });
 
-module.exports = router;
+export default router;

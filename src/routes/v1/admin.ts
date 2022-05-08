@@ -4,7 +4,7 @@ import { connectDb } from '@/db';
 import { QueryError } from 'mysql2';
 const router = express.Router();
 
-router.post('/create', verifyToken, function (req: express.Request, res: express.Response) {
+router.post('/create', verifyToken, (req: express.Request, res: express.Response) => {
   const connection = connectDb(res.locals.userId, res.locals.password);
   const userId: string = req.body.userId;
   let sql = `CREATE USER '${userId}'@'localhost' IDENTIFIED BY '${req.body.password}'; `;
@@ -26,7 +26,7 @@ router.post('/create', verifyToken, function (req: express.Request, res: express
   };
   sql += `FLUSH PRIVILEGES;`;
   sql += `INSERT INTO gateway.user (user_id, display_name, user_type, created_by, available) VALUES ('${userId}', '${req.body.displayName}', '${req.body.userType}', '${res.locals.userId}', 1);`
-  connection.query(sql, function (err: QueryError, result: any) {
+  connection.query(sql, (err: QueryError, _result) => {
     if (err) {
       if (err.code === "ER_CANNOT_USER") {
         return res.json({
@@ -36,56 +36,51 @@ router.post('/create', verifyToken, function (req: express.Request, res: express
       } else {
         console.log(err);
         return res.json({
-          status: "error",
           message: err.message
         })
       }
     } else {
-      return res.json({
-        status: "success",
-        data: result
-      });
+      return res.json();
     }
   });
   connection.end();
 });
 
-router.get('/created-by-me', verifyToken, function (req: express.Request, res: express.Response) {
+
+interface adminCreatedByMeSuccessProp {
+  user_id: string;
+  display_name: string;
+  user_type: string;
+}[];
+
+router.get('/created-by-me', verifyToken, (_req: express.Request, res: express.Response) => {
   const connection = connectDb(res.locals.userId, res.locals.password);
   const sql: string = `SELECT user_id, display_name, user_type FROM gateway.user WHERE created_by='${res.locals.userId}'`;
-  connection.query(sql, function (err: QueryError, result: any) {
+  connection.query(sql, (err: QueryError, result: adminCreatedByMeSuccessProp) => {
     if (err) {
       return res.json({
-        status: "error",
         message: err.message
       });
     } else {
-      return res.json({
-        status: "success",
-        data: result
-      });
+      return res.json(result);
     }
   });
   connection.end();
 });
 
-router.post('/delete-user', verifyToken, function (req: express.Request, res: express.Response) {
+router.post('/delete-user', verifyToken, (req: express.Request, res: express.Response) => {
   const connection = connectDb(res.locals.userId, res.locals.password);
   const sql: string = `DROP USER '${req.body.userId}'@'localhost'; DELETE FROM gateway.user WHERE user_id='${req.body.userId}' AND created_by='${res.locals.userId}'; `;
-  connection.query(sql, function (err: QueryError, result: any) {
+  connection.query(sql, (err: QueryError, _result) => {
     if (err) {
       return res.json({
-        status: "error",
         message: err.message
       });
     } else {
-      return res.json({
-        status: "success",
-        userId: req.body.userId
-      });
+      return res.json();
     }
   });
   connection.end();
 });
 
-module.exports = router;
+export default router;

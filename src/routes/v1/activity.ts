@@ -1,9 +1,10 @@
 import express from 'express';
 import verifyToken from '@/jwt';
 import { connectDb } from '@/db';
+import { QueryError } from 'mysql2';
 const router = express.Router();
 
-router.post('/:activity_type', verifyToken, function (req: express.Request, res: express.Response) {
+router.post('/:activity_type', verifyToken, (req: express.Request, res: express.Response) => {
     const activity_type: string = req.params.activity_type;
     if (["enter", "exit", "pass"].indexOf(activity_type, -1)) {
         const connection = connectDb(res.locals.userId, res.locals.password);
@@ -20,21 +21,19 @@ router.post('/:activity_type', verifyToken, function (req: express.Request, res:
         } else if (activity_type === "pass") {
             sql += `INSERT INTO gateway.session (session_id, exhibit_id, guest_id, enter_at, enter_operation, exit_at, exit_operation, available) VALUES ('s${activity_id}', '${exhibit_id}', '${guest_id}', '${timestamp}', '${res.locals.userId}', '${timestamp}', '${res.locals.userId}', 1);`
         }
-        connection.query(sql, function (err: any, result: any) {
+        connection.query(sql, (err: QueryError, _result) => {
             if (err) {
-                console.log(err);
-                return res.json(err);
+                return res.status(400).json(err);
             } else {
                 return res.json({
-                    status: "success",
-                    data: { activity_id: activity_id }
+                    activity_id: activity_id
                 });
             };
         });
         connection.end();
     } else {
-        res.json({ status: "error", message: "you posted invaild activity_type" });
+        res.status(400).json({ message: "you posted invalid activity_type" });
     };
 });
 
-module.exports = router;
+export default router;

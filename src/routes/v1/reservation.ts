@@ -14,19 +14,15 @@ router.get('/:reservation_id', verifyToken, function (req: express.Request, res:
         } else {
             console.log(result);
             if (result.length === 0) {
-                return res.json({
-                    status: "error",
+                return res.status(400).json({
                     message: `${reservation_id}という予約は存在しません。`
                 });
             } else {
-                return res.json({
-                    status: "success",
-                    data: result[0]
-                });
+                return res.json(result[0]);
             };
         };
     });
     connection.end();
 });
 
-module.exports = router;
+export default router;
