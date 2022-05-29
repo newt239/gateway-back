@@ -5,6 +5,7 @@ import (
 
 	activityRoute "github.com/newt239/gateway-back/routes/activity"
 	authRoute "github.com/newt239/gateway-back/routes/auth"
+	exhibitRoute "github.com/newt239/gateway-back/routes/exhibit"
 	guestRoute "github.com/newt239/gateway-back/routes/guest"
 	reservationRoute "github.com/newt239/gateway-back/routes/reservation"
 
@@ -45,6 +46,10 @@ func main() {
 	reservation := v1.Group("/reservation")
 	reservation.Use(middleware.JWT([]byte("secret")))
 	reservation.GET("/info/:reservation_id", reservationRoute.Info())
+
+	exhibit := v1.Group("/exhibit")
+	exhibit.Use(middleware.JWT([]byte("secret")))
+	exhibit.GET("/info/:exhibit_id", exhibitRoute.InfoEachExhibit())
 
 	e.Start(":3000")
 }
