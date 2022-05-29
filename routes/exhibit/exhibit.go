@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/newt239/gateway-back/database"
 
 	"github.com/dgrijalva/jwt-go"
@@ -28,6 +29,19 @@ func InfoEachExhibit() echo.HandlerFunc {
 	}
 }
 
+func CurrentEachExhibit() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		exhibit_id := c.Param("exhibit_id")
+		result := db.Where("exhibit_id = ?", exhibit_id).Where("exit_at", gorm.Expr("NULL")).First(&session{})
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"count": result.RowsAffected,
+		})
+	}
+}
+
 type exhibit struct {
 	ExhibitId   string    `json:"exhibit_id"`
 	ExhibitName string    `json:"exhibit_name"`
@@ -38,4 +52,16 @@ type exhibit struct {
 	Position    string    `json:"position"`
 	LastUpdate  time.Time `json:"last_update"`
 	Note        string    `json:"note"`
+}
+
+type session struct {
+	SessionId      string    `json:"session_id"`
+	ExhibitId      string    `json:"exhibit_id"`
+	GuestId        string    `json:"guest_id"`
+	EnterAt        time.Time `json:"enter_at"`
+	EnterOperation string    `json:"enter_operation"`
+	ExitAt         time.Time `json:"exit_at"`
+	ExitOperation  string    `json:"exit_operation"`
+	Available      int       `json:"available"`
+	Note           string    `json:"note"`
 }

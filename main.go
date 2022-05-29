@@ -50,6 +50,7 @@ func main() {
 	exhibit := v1.Group("/exhibit")
 	exhibit.Use(middleware.JWT([]byte("secret")))
 	exhibit.GET("/info/:exhibit_id", exhibitRoute.InfoEachExhibit())
+	exhibit.GET("/current/:exhibit_id", exhibitRoute.CurrentEachExhibit())
 
 	e.Start(":3000")
 }
