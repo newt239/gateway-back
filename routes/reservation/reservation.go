@@ -1,4 +1,4 @@
-package guestRoute
+package reservationRoute
 
 import (
 	"net/http"

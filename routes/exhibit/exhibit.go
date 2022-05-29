@@ -1,4 +1,4 @@
-package activityRoute
+package exhibitRoute
 
 import (
 	"fmt"

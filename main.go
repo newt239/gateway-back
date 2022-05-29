@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	activityRoute "github.com/newt239/gateway-back/routes/activity"
+	adminRoute "github.com/newt239/gateway-back/routes/admin"
 	authRoute "github.com/newt239/gateway-back/routes/auth"
 	exhibitRoute "github.com/newt239/gateway-back/routes/exhibit"
 	guestRoute "github.com/newt239/gateway-back/routes/guest"
@@ -53,6 +54,10 @@ func main() {
 	exhibit.GET("/info/:exhibit_id", exhibitRoute.InfoEachExhibit())
 	exhibit.GET("/current/:exhibit_id", exhibitRoute.CurrentEachExhibit())
 	exhibit.GET("/history/:exhibit_id/:day", exhibitRoute.HistoryEachExhibit())
+
+	admin := v1.Group("/admin")
+	admin.Use(middleware.JWT([]byte("secret")))
+	admin.POST("/user/create", adminRoute.CreateUser())
 
 	e.Start(":3000")
 }
