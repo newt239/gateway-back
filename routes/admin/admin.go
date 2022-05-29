@@ -56,3 +56,22 @@ func DeleteUser() echo.HandlerFunc {
 		return c.NoContent(http.StatusOK) // status code 200で何も返さない
 	}
 }
+
+func CreatedByMeUserList() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		var result []user
+		db.Where("created_by = ?", user_id).Find(&user{}).Scan(&result)
+
+		fmt.Println(result)
+		return c.JSON(http.StatusOK, result)
+	}
+}
+
+type user struct {
+	UserId      string `json:"user_id"`
+	DisplayName string `json:"display_name"`
+	UserType    string `json:"user_type"`
+}

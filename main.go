@@ -59,6 +59,7 @@ func main() {
 	admin.Use(middleware.JWT([]byte("secret")))
 	admin.POST("/user/create", adminRoute.CreateUser())
 	admin.DELETE("/user/delete/:user_id", adminRoute.DeleteUser())
+	admin.GET("/user/created-by-me", adminRoute.CreatedByMeUserList())
 
 	e.Start(":3000")
 }
