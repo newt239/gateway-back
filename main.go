@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	activityRoute "github.com/newt239/gateway-back/routes/activity"
 	authRoute "github.com/newt239/gateway-back/routes/auth"
 
 	"github.com/labstack/echo"
@@ -26,10 +27,12 @@ func main() {
 
 	auth := v1.Group("/auth")
 	auth.POST("/login", authRoute.Login())
+	auth.Use(middleware.JWT([]byte("secret")))
 	auth.GET("/me", authRoute.Me())
 
 	activity := v1.Group("/activity")
 	activity.Use(middleware.JWT([]byte("secret")))
+	activity.POST("/enter", activityRoute.Enter())
 
 	e.Start(":3000")
 }

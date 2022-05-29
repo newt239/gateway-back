@@ -12,10 +12,9 @@ import (
 
 func Login() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user_id := c.FormValue("user_id")
-		password := c.FormValue("password")
+		user_id, password := c.FormValue("user_id"), c.FormValue("password")
+		db := database.ConnectGORM(user_id, password)
 
-		database.ConnectGORM(user_id, password)
 		// Create token
 		token := jwt.New(jwt.SigningMethodHS256)
 		// Set claims
@@ -29,6 +28,7 @@ func Login() echo.HandlerFunc {
 		if err != nil {
 			return err
 		}
+		db.Close()
 		return c.JSON(http.StatusOK, map[string]string{
 			"token": tokenString,
 		})
@@ -37,14 +37,12 @@ func Login() echo.HandlerFunc {
 
 func Me() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user_id, password, err := database.CheckJwt(c.FormValue("token"))
-		if err != nil {
-			return err
-		}
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
 
 		var result user
 		db.Where("user_id = ?", user_id).First(&user{}).Scan(&result)
+		db.Close()
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"user_id":      result.UserId,
 			"display_name": result.DisplayName,
