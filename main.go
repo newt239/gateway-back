@@ -6,6 +6,7 @@ import (
 	activityRoute "github.com/newt239/gateway-back/routes/activity"
 	authRoute "github.com/newt239/gateway-back/routes/auth"
 	guestRoute "github.com/newt239/gateway-back/routes/guest"
+	reservationRoute "github.com/newt239/gateway-back/routes/reservation"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -40,6 +41,10 @@ func main() {
 	guest.Use(middleware.JWT([]byte("secret")))
 	guest.GET("/info/:guest_id", guestRoute.Info())
 	guest.POST("/register", guestRoute.Register())
+
+	reservation := v1.Group("/reservation")
+	reservation.Use(middleware.JWT([]byte("secret")))
+	reservation.GET("/info/:reservation_id", reservationRoute.Info())
 
 	e.Start(":3000")
 }
