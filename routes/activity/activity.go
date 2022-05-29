@@ -33,8 +33,8 @@ func Enter() echo.HandlerFunc {
 			EnterOperation: user_id,
 			Available:      1,
 		}
-		var result session
-		db.Omit("exit_at", "exit_operation", "note").Create(&sessionEx).Scan(&result)
+
+		db.Omit("exit_at", "exit_operation", "note").Create(&sessionEx)
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"session_id": session_id,
 		})

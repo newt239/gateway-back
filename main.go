@@ -39,6 +39,7 @@ func main() {
 	guest := v1.Group("/guest")
 	guest.Use(middleware.JWT([]byte("secret")))
 	guest.GET("/info/:guest_id", guestRoute.Info())
+	guest.POST("/register", guestRoute.Register())
 
 	e.Start(":3000")
 }
