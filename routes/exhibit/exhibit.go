@@ -42,6 +42,21 @@ func CurrentEachExhibit() echo.HandlerFunc {
 	}
 }
 
+func HistoryEachExhibit() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		type historyParam struct {
+			Time  time.Time `json:"time"`
+			Count int       `json:"count"`
+		}
+		var result []historyParam
+		db.Raw("SELECT timestamp(DATE_FORMAT(enter_at, '%Y-%m-%d %H:00:00')) AS time, COUNT(*) AS count FROM gateway.session WHERE exhibit_id = ? AND DATE(enter_at) = ? GROUP BY DATE_FORMAT(enter_at, '%Y%m%d%H');", c.Param("exhibit_id"), c.Param("day")).Scan(&result)
+		return c.JSON(http.StatusOK, result)
+	}
+}
+
 type exhibit struct {
 	ExhibitId   string    `json:"exhibit_id"`
 	ExhibitName string    `json:"exhibit_name"`
