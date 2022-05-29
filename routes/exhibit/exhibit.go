@@ -1,6 +1,7 @@
 package activityRoute
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -10,6 +11,23 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
+
+func ExhibitList() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		type exhibitListParam struct {
+			ExhibitId   string `json:"exhibit_id"`
+			ExhibitName string `json:"exhibit_name"`
+			Status      int    `json:"status"`
+		}
+		var result []exhibitListParam
+		db.Table("exhibit").Find(&exhibit{}).Scan(&result)
+		fmt.Println(result)
+		return c.JSON(http.StatusOK, result)
+	}
+}
 
 func InfoEachExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {

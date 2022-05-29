@@ -49,6 +49,7 @@ func main() {
 
 	exhibit := v1.Group("/exhibit")
 	exhibit.Use(middleware.JWT([]byte("secret")))
+	exhibit.GET("/list", exhibitRoute.ExhibitList())
 	exhibit.GET("/info/:exhibit_id", exhibitRoute.InfoEachExhibit())
 	exhibit.GET("/current/:exhibit_id", exhibitRoute.CurrentEachExhibit())
 	exhibit.GET("/history/:exhibit_id/:day", exhibitRoute.HistoryEachExhibit())
