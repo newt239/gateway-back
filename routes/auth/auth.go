@@ -12,18 +12,20 @@ import (
 
 func Login() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user_id, password := c.FormValue("user_id"), c.FormValue("password")
+		loginPostParam := authPostParam{}
+		if err := c.Bind(&loginPostParam); err != nil {
+			return err
+		}
+
+		user_id, password := loginPostParam.UserId, loginPostParam.Password
 		db := database.ConnectGORM(user_id, password)
 
-		// Create token
 		token := jwt.New(jwt.SigningMethodHS256)
-		// Set claims
 		claims := token.Claims.(jwt.MapClaims)
 		claims["user_id"] = user_id
 		claims["password"] = password
 		claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
-		// Generate encoded token and send it as response.
 		tokenString, err := token.SignedString([]byte("secret"))
 		if err != nil {
 			return err
@@ -50,6 +52,11 @@ func Me() echo.HandlerFunc {
 			"available":    result.Available,
 		})
 	}
+}
+
+type authPostParam struct {
+	UserId   string `json:"user_id"`
+	Password string `json:"password"`
 }
 
 type user struct {

@@ -17,13 +17,18 @@ func Enter() echo.HandlerFunc {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
 
+		enterPostParam := activityPostParam{}
+		if err := c.Bind(&enterPostParam); err != nil {
+			return err
+		}
+
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
 		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
 		sessionEx := session{
 			SessionId:      session_id,
-			ExhibitId:      c.FormValue("exhibit_id"),
-			GuestId:        c.FormValue("guest_id"),
+			ExhibitId:      enterPostParam.ExhibitId,
+			GuestId:        enterPostParam.GuestId,
 			EnterAt:        now,
 			EnterOperation: user_id,
 			Available:      1,
@@ -41,6 +46,11 @@ func Exit() echo.HandlerFunc {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
 
+		exitPostParam := activityPostParam{}
+		if err := c.Bind(&exitPostParam); err != nil {
+			return err
+		}
+
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
 		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
@@ -50,11 +60,17 @@ func Exit() echo.HandlerFunc {
 			ExitOperation: user_id,
 		}
 		var result session
-		db.Where("guest_id = ?", c.FormValue("guest_id")).Where("exhibit_id = ?", c.FormValue("exhibit_id")).Where("exit_at = ?", gorm.Expr("NULL")).Updates(&sessionEx).Scan(&result)
+		db.Where("guest_id = ?", exitPostParam.GuestId).Where("exhibit_id = ?", exitPostParam.ExhibitId).Where("exit_at = ?", gorm.Expr("NULL")).Updates(&sessionEx).Scan(&result)
+		db.Close()
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"session_id": session_id,
 		})
 	}
+}
+
+type activityPostParam struct {
+	ExhibitId string `json:"exhibit_id"`
+	GuestId   string `json:"guest_id"`
 }
 
 type session struct {
