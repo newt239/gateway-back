@@ -45,3 +45,14 @@ func CreateUser() echo.HandlerFunc {
 		return c.NoContent(http.StatusOK) // status code 200で何も返さない
 	}
 }
+
+func DeleteUser() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		db.Exec(fmt.Sprintf("DROP USER '%s'@'localhost';", c.Param("user_id")))
+		db.Exec(fmt.Sprintf("DELETE FROM gateway.user WHERE user_id='%s' AND created_by='%s';", c.Param("user_id"), user_id))
+		return c.NoContent(http.StatusOK) // status code 200で何も返さない
+	}
+}
