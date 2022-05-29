@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/newt239/gateway-back/database"
 
 	"github.com/dgrijalva/jwt-go"
@@ -29,6 +30,27 @@ func Enter() echo.HandlerFunc {
 		}
 		var result session
 		db.Omit("exit_at", "exit_operation", "note").Create(&sessionEx).Scan(&result)
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"session_id": session_id,
+		})
+	}
+}
+
+func Exit() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		jst, _ := time.LoadLocation("Asia/Tokyo")
+		now := time.Now().In(jst)
+		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		sessionEx := session{
+			SessionId:     session_id,
+			ExitAt:        now,
+			ExitOperation: user_id,
+		}
+		var result session
+		db.Where("guest_id = ?", c.FormValue("guest_id")).Where("exhibit_id = ?", c.FormValue("exhibit_id")).Where("exit_at = ?", gorm.Expr("NULL")).Updates(&sessionEx).Scan(&result)
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"session_id": session_id,
 		})

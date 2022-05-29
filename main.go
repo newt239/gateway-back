@@ -33,6 +33,7 @@ func main() {
 	activity := v1.Group("/activity")
 	activity.Use(middleware.JWT([]byte("secret")))
 	activity.POST("/enter", activityRoute.Enter())
+	activity.POST("/exit", activityRoute.Exit())
 
 	e.Start(":3000")
 }
