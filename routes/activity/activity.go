@@ -34,7 +34,7 @@ func Enter() echo.HandlerFunc {
 			Available:      1,
 		}
 
-		db.Omit("exit_at", "exit_operation", "note").Create(&sessionEx)
+		db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionEx)
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"session_id": session_id,
 		})
@@ -60,7 +60,7 @@ func Exit() echo.HandlerFunc {
 			ExitOperation: user_id,
 		}
 		var result session
-		db.Where("guest_id = ?", exitPostParam.GuestId).Where("exhibit_id = ?", exitPostParam.ExhibitId).Where("exit_at = ?", gorm.Expr("NULL")).Updates(&sessionEx).Scan(&result)
+		db.Table("session").Where("guest_id = ?", exitPostParam.GuestId).Where("exhibit_id = ?", exitPostParam.ExhibitId).Where("exit_at is ?", gorm.Expr("NULL")).Updates(&sessionEx).Scan(&result)
 		db.Close()
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"session_id": session_id,

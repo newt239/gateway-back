@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/newt239/gateway-back/database"
 
 	"github.com/dgrijalva/jwt-go"
@@ -53,9 +52,10 @@ func CurrentEachExhibit() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 
 		exhibit_id := c.Param("exhibit_id")
-		result := db.Where("exhibit_id = ?", exhibit_id).Where("exit_at", gorm.Expr("NULL")).First(&session{})
+		var result []session
+		db.Raw(fmt.Sprintf("SELECT * FROM gateway.session WHERE exhibit_id = '%s' AND exit_at is NULL", exhibit_id)).Scan(&result)
 		return c.JSON(http.StatusOK, map[string]interface{}{
-			"count": result.RowsAffected,
+			"count": len(result),
 		})
 	}
 }
