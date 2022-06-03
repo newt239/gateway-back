@@ -23,8 +23,17 @@ func Hello() echo.HandlerFunc {
 func main() {
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:8000"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
+		AllowCredentials: true,
+		AllowOrigins:     []string{"http://localhost:8000"},
+		AllowHeaders: []string{
+			echo.HeaderAccessControlAllowHeaders,
+			echo.HeaderContentType,
+			echo.HeaderContentLength,
+			echo.HeaderAcceptEncoding,
+			echo.HeaderXCSRFToken,
+			echo.HeaderAuthorization,
+		},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodPatch},
 	}))
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
