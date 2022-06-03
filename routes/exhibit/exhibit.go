@@ -52,11 +52,17 @@ func CurrentEachExhibit() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 
 		exhibit_id := c.Param("exhibit_id")
-		var result []session
-		db.Raw(fmt.Sprintf("SELECT * FROM gateway.session WHERE exhibit_id = '%s' AND exit_at is NULL", exhibit_id)).Scan(&result)
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"count": len(result),
-		})
+
+		type currentEachExhibitParam struct {
+			ID        string `json:"id"`
+			SessionId string `json:"session_id"`
+			GuestType string `json:"guest_type"`
+			EnterAt   string `json:"enter_at"`
+		}
+		var result []currentEachExhibitParam
+		db.Raw(fmt.Sprintf("SELECT session.guest_id AS id, session.session_id, guest_type, enter_at FROM session INNER JOIN guest ON session.guest_id = guest.guest_id WHERE session.exhibit_id='%s' AND session.exit_at IS NULL;", exhibit_id)).Scan(&result)
+		fmt.Println(result)
+		return c.JSON(http.StatusOK, result)
 	}
 }
 
@@ -85,16 +91,4 @@ type exhibit struct {
 	Position    string    `json:"position"`
 	LastUpdate  time.Time `json:"last_update"`
 	Note        string    `json:"note"`
-}
-
-type session struct {
-	SessionId      string    `json:"session_id"`
-	ExhibitId      string    `json:"exhibit_id"`
-	GuestId        string    `json:"guest_id"`
-	EnterAt        time.Time `json:"enter_at"`
-	EnterOperation string    `json:"enter_operation"`
-	ExitAt         time.Time `json:"exit_at"`
-	ExitOperation  string    `json:"exit_operation"`
-	Available      int       `json:"available"`
-	Note           string    `json:"note"`
 }

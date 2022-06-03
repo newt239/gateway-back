@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/newt239/gateway-back/database"
 
 	"github.com/dgrijalva/jwt-go"
@@ -16,15 +17,18 @@ func Info() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 
 		guest_id := c.Param("guest_id")
-		var result guest
-		db.Where("guest_id = ?", guest_id).First(&guest{}).Scan(&result)
+		var guestInfoResult guest
+		db.Where("guest_id = ?", guest_id).First(&guest{}).Scan(&guestInfoResult)
+		var sessionInfoResult session
+		db.Select("exhibit_id").Where("guest_id = ?", guest_id).Where("exit_at IS ?", gorm.Expr("NULL")).First(&guest{}).Scan(&sessionInfoResult)
 		db.Close()
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"guest_id":       guest_id,
-			"guest_type":     result.GuestType,
-			"reservation_id": result.ReservationId,
-			"part":           result.Part,
-			"available":      result.Available,
+			"guest_type":     guestInfoResult.GuestType,
+			"reservation_id": guestInfoResult.ReservationId,
+			"part":           guestInfoResult.Part,
+			"available":      guestInfoResult.Available,
+			"exhibit_id":     sessionInfoResult.ExhibitId,
 		})
 	}
 }
@@ -86,4 +90,16 @@ type guest struct {
 	RegisterAt    time.Time `json:"register_at"`
 	RevokeAt      time.Time `json:"revoke_at"`
 	Note          string    `json:"note"`
+}
+
+type session struct {
+	SessionId      string    `json:"session_id"`
+	ExhibitId      string    `json:"exhibit_id"`
+	GuestId        string    `json:"guest_id"`
+	EnterAt        time.Time `json:"enter_at"`
+	EnterOperation string    `json:"enter_operation"`
+	ExitAt         time.Time `json:"exit_at"`
+	ExitOperation  string    `json:"exit_operation"`
+	Available      int       `json:"available"`
+	Note           string    `json:"note"`
 }
