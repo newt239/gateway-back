@@ -96,15 +96,3 @@ type guest struct {
 	RevokeAt      time.Time `json:"revoke_at"`
 	Note          string    `json:"note"`
 }
-
-type session struct {
-	SessionId      string    `json:"session_id"`
-	ExhibitId      string    `json:"exhibit_id"`
-	GuestId        string    `json:"guest_id"`
-	EnterAt        time.Time `json:"enter_at"`
-	EnterOperation string    `json:"enter_operation"`
-	ExitAt         time.Time `json:"exit_at"`
-	ExitOperation  string    `json:"exit_operation"`
-	Available      int       `json:"available"`
-	Note           string    `json:"note"`
-}
