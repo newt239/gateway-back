@@ -1,10 +1,10 @@
 package guestRoute
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/newt239/gateway-back/database"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,8 +19,13 @@ func Info() echo.HandlerFunc {
 		guest_id := c.Param("guest_id")
 		var guestInfoResult guest
 		db.Where("guest_id = ?", guest_id).First(&guest{}).Scan(&guestInfoResult)
-		var sessionInfoResult session
-		db.Select("exhibit_id").Where("guest_id = ?", guest_id).Where("exit_at IS ?", gorm.Expr("NULL")).First(&guest{}).Scan(&sessionInfoResult)
+
+		type sessionInfoResultParam struct {
+			ExhibitId string `json:"exhibit_id"`
+		}
+		var sessionInfoResult []sessionInfoResultParam
+		db.Raw(fmt.Sprintf("SELECT exhibit_id FROM gateway.session WHERE guest_id = '%s' AND exit_at IS NULL", guest_id)).Scan(&sessionInfoResult)
+		fmt.Println(sessionInfoResult)
 		db.Close()
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"guest_id":       guest_id,
@@ -28,7 +33,7 @@ func Info() echo.HandlerFunc {
 			"reservation_id": guestInfoResult.ReservationId,
 			"part":           guestInfoResult.Part,
 			"available":      guestInfoResult.Available,
-			"exhibit_id":     sessionInfoResult.ExhibitId,
+			"exhibit_id":     sessionInfoResult[0].ExhibitId,
 		})
 	}
 }
