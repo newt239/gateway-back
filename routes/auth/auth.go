@@ -31,6 +31,7 @@ func Login() echo.HandlerFunc {
 			return err
 		}
 		db.Close()
+
 		return c.JSON(http.StatusOK, map[string]string{
 			"token": tokenString,
 		})
@@ -45,6 +46,7 @@ func Me() echo.HandlerFunc {
 		var result user
 		db.Where("user_id = ?", user_id).First(&user{}).Scan(&result)
 		db.Close()
+
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"user_id":      result.UserId,
 			"display_name": result.DisplayName,

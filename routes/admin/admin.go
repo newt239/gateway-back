@@ -54,6 +54,8 @@ func DeleteUser() echo.HandlerFunc {
 
 		db.Exec(fmt.Sprintf("DROP USER '%s'@'localhost';", c.Param("user_id")))
 		db.Exec(fmt.Sprintf("DELETE FROM gateway.user WHERE user_id='%s' AND created_by='%s';", c.Param("user_id"), user_id))
+		db.Close()
+
 		return c.NoContent(http.StatusOK) // status code 200で何も返さない
 	}
 }
@@ -65,6 +67,7 @@ func CreatedByMeUserList() echo.HandlerFunc {
 
 		var result []user
 		db.Where("created_by = ?", user_id).Find(&user{}).Scan(&result)
+		db.Close()
 
 		fmt.Println(result)
 		return c.JSON(http.StatusOK, result)
@@ -98,6 +101,8 @@ func CreateExhibit() echo.HandlerFunc {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
 		db.Table("exhibit").Omit("position", "status", "note").Create(&exhibitEx)
+		db.Close()
+
 		return c.NoContent(http.StatusOK)
 	}
 }
@@ -108,6 +113,8 @@ func DeleteExhibit() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 
 		db.Exec(fmt.Sprintf("DELETE FROM gateway.exhibit WHERE exhibit_id='%s';", c.Param("exhibit_id")))
+		db.Close()
+
 		return c.NoContent(http.StatusOK) // status code 200で何も返さない
 	}
 }

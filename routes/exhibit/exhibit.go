@@ -23,7 +23,8 @@ func ExhibitList() echo.HandlerFunc {
 		}
 		var result []exhibitListParam
 		db.Table("exhibit").Find(&exhibit{}).Scan(&result)
-		fmt.Println(result)
+		db.Close()
+
 		return c.JSON(http.StatusOK, result)
 	}
 }
@@ -36,6 +37,8 @@ func InfoEachExhibit() echo.HandlerFunc {
 		exhibit_id := c.Param("exhibit_id")
 		var result exhibit
 		db.Where("exhibit_id = ?", exhibit_id).First(&exhibit{}).Scan(&result)
+		db.Close()
+
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"exhibit_id":   result.ExhibitId,
 			"exhibit_name": result.ExhibitName,
@@ -61,7 +64,8 @@ func CurrentEachExhibit() echo.HandlerFunc {
 		}
 		var result []currentEachExhibitParam
 		db.Raw(fmt.Sprintf("SELECT session.guest_id AS id, session.session_id, guest_type, enter_at FROM session INNER JOIN guest ON session.guest_id = guest.guest_id WHERE session.exhibit_id='%s' AND session.exit_at IS NULL;", exhibit_id)).Scan(&result)
-		fmt.Println(result)
+		db.Close()
+
 		return c.JSON(http.StatusOK, result)
 	}
 }
@@ -77,6 +81,8 @@ func HistoryEachExhibit() echo.HandlerFunc {
 		}
 		var result []historyParam
 		db.Raw("SELECT timestamp(DATE_FORMAT(enter_at, '%Y-%m-%d %H:00:00')) AS time, COUNT(*) AS count FROM gateway.session WHERE exhibit_id = ? AND DATE(enter_at) = ? GROUP BY DATE_FORMAT(enter_at, '%Y%m%d%H');", c.Param("exhibit_id"), c.Param("day")).Scan(&result)
+		db.Close()
+
 		return c.JSON(http.StatusOK, result)
 	}
 }

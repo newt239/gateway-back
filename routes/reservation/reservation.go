@@ -17,6 +17,7 @@ func Info() echo.HandlerFunc {
 		var result reservation
 		db.Where("reservation_id = ?", c.Param("reservation_id")).First(&reservation{}).Scan(&result)
 		db.Close()
+
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"reservation_id": result.ReservationId,
 			"guest_type":     result.GuestType,
