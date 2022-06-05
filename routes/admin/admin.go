@@ -28,7 +28,7 @@ func CreateUser() echo.HandlerFunc {
 		}
 
 		// %% で % をエスケープ
-		db.Raw(fmt.Sprintf("CREATE USER '%s'@`%%` identified by '%s';", newUserData.UserId, newUserData.Password))
+		db.Raw(fmt.Sprintf("CREATE USER '%s'@`%%` identified by '%s' with MAX_QUERIES_PER_HOUR 1000;", newUserData.UserId, newUserData.Password))
 		db.Exec("FLUSH PRIVILEGES;")
 		var sql string
 		switch newUserData.UserType {
