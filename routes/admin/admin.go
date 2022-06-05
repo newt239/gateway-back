@@ -26,19 +26,19 @@ func CreateUser() echo.HandlerFunc {
 		if err := c.Bind(&newUserData); err != nil {
 			return err
 		}
-		db.Exec(fmt.Sprintf(`CREATE USER '%s'@'localhost' identified by '%s';`, newUserData.UserId, newUserData.Password))
-		db.Exec("FLUSH PRIVILEGES;")
 
+		// %% で % をエスケープ
+		db.Raw(fmt.Sprintf("CREATE USER '%s'@`%%` identified by '%s';", newUserData.UserId, newUserData.Password))
+		db.Exec("FLUSH PRIVILEGES;")
 		var sql string
 		switch newUserData.UserType {
-		case "moderator":
-			sql += fmt.Sprintf("GRANT ALL ON *.* TO '%s'@'localhost' WITH GRANT OPTION; ", newUserData.UserId)
+		// host が localhost の時しか GRANT OPTION は付けられないので moderator は手動で作成
 		case "executive":
-			sql += fmt.Sprintf("GRANT INSERT, UPDATE, SELECT ON gateway.* TO '%s'@'localhost'; ", newUserData.UserId)
+			sql = fmt.Sprintf("GRANT INSERT, UPDATE, SELECT ON gateway.* TO '%s'@'%%'; ", newUserData.UserId)
 		case "exhibit":
-			sql += fmt.Sprintf("GRANT INSERT, UPDATE, SELECT ON gateway.* TO '%s'@'localhost'; ", newUserData.UserId)
-		case "analysis":
-			sql += fmt.Sprintf("GRANT SELECT ON gateway.* TO '%s'@'localhost'; ", newUserData.UserId)
+			sql = fmt.Sprintf("GRANT INSERT, UPDATE, SELECT ON gateway.* TO '%s'@'%%'; ", newUserData.UserId)
+		default:
+			sql = fmt.Sprintf("GRANT SELECT ON gateway.* TO '%s'@'%%'; ", newUserData.UserId)
 		}
 		db.Exec(sql)
 		db.Exec(fmt.Sprintf("INSERT INTO gateway.user (user_id, display_name, user_type, created_by, available) VALUES ('%s', '%s', '%s', '%s', 1);", newUserData.UserId, newUserData.DisplayName, newUserData.UserType, user_id))
