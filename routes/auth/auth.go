@@ -49,6 +49,7 @@ func Me() echo.HandlerFunc {
 			"user_id":      result.UserId,
 			"display_name": result.DisplayName,
 			"user_type":    result.UserType,
+			"role":         result.Role,
 			"available":    result.Available,
 		})
 	}

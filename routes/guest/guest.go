@@ -25,15 +25,19 @@ func Info() echo.HandlerFunc {
 		}
 		var sessionInfoResult []sessionInfoResultParam
 		db.Raw(fmt.Sprintf("SELECT exhibit_id FROM gateway.session WHERE guest_id = '%s' AND exit_at IS NULL", guest_id)).Scan(&sessionInfoResult)
-		fmt.Println(sessionInfoResult)
+		exhibit_id := ""
+		if len(sessionInfoResult) == 1 {
+			exhibit_id = sessionInfoResult[0].ExhibitId
+		}
 		db.Close()
+
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"guest_id":       guest_id,
 			"guest_type":     guestInfoResult.GuestType,
 			"reservation_id": guestInfoResult.ReservationId,
 			"part":           guestInfoResult.Part,
 			"available":      guestInfoResult.Available,
-			"exhibit_id":     sessionInfoResult[0].ExhibitId,
+			"exhibit_id":     exhibit_id,
 		})
 	}
 }
@@ -85,14 +89,13 @@ func Register() echo.HandlerFunc {
 }
 
 type guest struct {
-	GuestId       string    `json:"guest_id"`
-	GuestType     string    `json:"guest_type"`
-	ReservationId string    `json:"reservation_id"`
-	ExhibitId     string    `json:"exhibit_id"`
-	Part          string    `json:"part"`
-	UserId        string    `json:"user_id"`
-	Available     int       `json:"available"`
-	RegisterAt    time.Time `json:"register_at"`
-	RevokeAt      time.Time `json:"revoke_at"`
-	Note          string    `json:"note"`
+	GuestId       string     `json:"guest_id"`
+	GuestType     string     `json:"guest_type"`
+	ReservationId string     `json:"reservation_id"`
+	Part          string     `json:"part"`
+	UserId        string     `json:"user_id"`
+	Available     int        `json:"available"`
+	RegisterAt    time.Time  `json:"register_at"`
+	RevokeAt      *time.Time `json:"revoke_at"`
+	Note          *string    `json:"note"`
 }
