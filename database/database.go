@@ -12,8 +12,9 @@ func ConnectGORM(user_id string, password string) *gorm.DB {
 	USER := user_id
 	PASS := password
 	PROTOCOL := "tcp(0.0.0.0:3306)"
+	DBNAME := "gateway"
 
-	CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/?parseTime=true&loc=Asia%2FTokyo"
+	CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?parseTime=true&loc=Asia%2FTokyo"
 
 	db, err := gorm.Open(DBMS, CONNECT)
 

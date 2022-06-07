@@ -1,7 +1,6 @@
 package guestRoute
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -18,17 +17,17 @@ func Info() echo.HandlerFunc {
 
 		guest_id := c.Param("guest_id")
 		var guestInfoResult guest
-		db.Where("guest_id = ?", guest_id).First(&guest{}).Scan(&guestInfoResult)
+		db.Table("guest").Where("guest_id = ?", guest_id).First(&guestInfoResult)
 
 		type sessionInfoResultParam struct {
 			ExhibitId string `json:"exhibit_id"`
 		}
-		var sessionInfoResult []sessionInfoResultParam
-		db.Raw(fmt.Sprintf("SELECT exhibit_id FROM gateway.session WHERE guest_id = '%s' AND exit_at IS NULL", guest_id)).Scan(&sessionInfoResult)
+		var sessionInfoResult sessionInfoResultParam
 		exhibit_id := ""
-		if len(sessionInfoResult) == 1 {
-			exhibit_id = sessionInfoResult[0].ExhibitId
+		if err := db.Table("session").Select("exhibit_id").Where("guest_id = ?", guest_id).Where("exit_at IS NULL").First(&sessionInfoResult).Error; err == nil {
+			exhibit_id = sessionInfoResult.ExhibitId
 		}
+
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
