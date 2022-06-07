@@ -14,7 +14,6 @@ import (
 func CreateUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-		db := database.ConnectGORM(user_id, password)
 
 		type createUserPostParam struct {
 			UserId      string `json:"user_id"`
@@ -27,21 +26,13 @@ func CreateUser() echo.HandlerFunc {
 			return err
 		}
 
-		// %% で % をエスケープ
-		db.Raw(fmt.Sprintf("CREATE USER '%s'@`%%` identified by '%s' with MAX_QUERIES_PER_HOUR 1000;", newUserData.UserId, newUserData.Password))
-		db.Exec("FLUSH PRIVILEGES;")
-		var sql string
-		switch newUserData.UserType {
-		// host が localhost の時しか GRANT OPTION は付けられないので moderator は手動で作成
-		case "executive":
-			sql = fmt.Sprintf("GRANT INSERT, UPDATE, SELECT ON gateway.* TO '%s'@'%%'; ", newUserData.UserId)
-		case "exhibit":
-			sql = fmt.Sprintf("GRANT INSERT, UPDATE, SELECT ON gateway.* TO '%s'@'%%'; ", newUserData.UserId)
-		default:
-			sql = fmt.Sprintf("GRANT SELECT ON gateway.* TO '%s'@'%%'; ", newUserData.UserId)
-		}
-		db.Exec(sql)
-		db.Exec(fmt.Sprintf("INSERT INTO gateway.user (user_id, display_name, user_type, created_by, available) VALUES ('%s', '%s', '%s', '%s', 1);", newUserData.UserId, newUserData.DisplayName, newUserData.UserType, user_id))
+		db := database.ConnectAdminGORM(user_id, password)
+		db.Raw("CREATE USER '?'@'localhost' identified by '?';", newUserData.UserId, newUserData.Password)
+		db.Raw("GRANT INSERT, UPDATE, SELECT ON gateway.* TO '?'@'localhost';", newUserData.UserId)
+		db.Close()
+
+		db = database.ConnectGORM(user_id, password)
+		db.Raw(fmt.Sprintf("INSERT INTO gateway.user (user_id, display_name, user_type, created_by, available) VALUES ('%s', '%s', '%s', '%s', 1);", newUserData.UserId, newUserData.DisplayName, newUserData.UserType, user_id))
 		db.Close()
 		return c.NoContent(http.StatusOK) // status code 200で何も返さない
 	}
@@ -50,10 +41,12 @@ func CreateUser() echo.HandlerFunc {
 func DeleteUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-		db := database.ConnectGORM(user_id, password)
+		db := database.ConnectAdminGORM(user_id, password)
+		db.Raw(fmt.Sprintf("DROP USER '%s'@'localhost';", c.Param("user_id")))
+		db.Close()
 
-		db.Exec(fmt.Sprintf("DROP USER '%s'@'localhost';", c.Param("user_id")))
-		db.Exec(fmt.Sprintf("DELETE FROM gateway.user WHERE user_id='%s' AND created_by='%s';", c.Param("user_id"), user_id))
+		db = database.ConnectGORM(user_id, password)
+		db.Raw(fmt.Sprintf("DELETE FROM gateway.user WHERE user_id='%s' AND created_by='%s';", c.Param("user_id"), user_id))
 		db.Close()
 
 		return c.NoContent(http.StatusOK) // status code 200で何も返さない
