@@ -2,6 +2,7 @@ package guestRoute
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -18,8 +19,16 @@ func Info() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 
 		guest_id := c.Param("guest_id")
+		type guest struct {
+			GuestId       string `json:"guest_id"`
+			GuestType     string `json:"guest_type"`
+			ReservationId string `json:"reservation_id"`
+			Part          string `json:"part"`
+			Available     int    `json:"available"`
+		}
 		var guestInfoResult guest
 		db.Table("guest").Where("guest_id = ?", guest_id).First(&guestInfoResult)
+		fmt.Println(guestInfoResult)
 
 		type sessionInfoResultParam struct {
 			ExhibitId string `json:"exhibit_id"`
@@ -88,16 +97,4 @@ func Register() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, map[string]interface{}{})
 	}
-}
-
-type guest struct {
-	GuestId       string     `json:"guest_id"`
-	GuestType     string     `json:"guest_type"`
-	ReservationId string     `json:"reservation_id"`
-	Part          string     `json:"part"`
-	UserId        string     `json:"user_id"`
-	Available     int        `json:"available"`
-	RegisterAt    time.Time  `json:"register_at"`
-	RevokeAt      *time.Time `json:"revoke_at"`
-	Note          *string    `json:"note"`
 }
