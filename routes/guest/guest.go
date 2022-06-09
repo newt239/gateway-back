@@ -1,9 +1,11 @@
 package guestRoute
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/newt239/gateway-back/database"
 
 	"github.com/dgrijalva/jwt-go"
@@ -24,7 +26,8 @@ func Info() echo.HandlerFunc {
 		}
 		var sessionInfoResult sessionInfoResultParam
 		exhibit_id := ""
-		if err := db.Table("session").Select("exhibit_id").Where("guest_id = ?", guest_id).Where("exit_at IS NULL").First(&sessionInfoResult).Error; err == nil {
+		err := db.Table("session").Select("exhibit_id").Where("guest_id = ?", guest_id).Where("exit_at IS NULL").First(&sessionInfoResult).Error
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			exhibit_id = sessionInfoResult.ExhibitId
 		}
 
