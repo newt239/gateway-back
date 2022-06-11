@@ -29,6 +29,23 @@ func ExhibitList() echo.HandlerFunc {
 	}
 }
 
+func InfoAllExhibit() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		type infoAllExhibitParam struct {
+			GuestType string `json:"guest_type"`
+			Count     int    `json:"count"`
+		}
+		var result []infoAllExhibitParam
+		db.Raw("").Scan(&result)
+		db.Close()
+
+		return c.JSON(http.StatusOK, result)
+	}
+}
+
 func InfoEachExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
