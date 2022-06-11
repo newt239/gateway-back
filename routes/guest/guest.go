@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -55,8 +56,6 @@ func Info() echo.HandlerFunc {
 
 func Register() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		jst, _ := time.LoadLocation("Asia/Tokyo")
-		now := time.Now().In(jst)
 
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 
@@ -83,7 +82,10 @@ func Register() echo.HandlerFunc {
 
 		db := database.ConnectGORM(user_id, password)
 		for _, v := range registerPostData.GuestIdList {
-			db.Omit("exhibit_id", "revoke_at", "note").Table("guest").Create(&guestParam{
+			jst, _ := time.LoadLocation("Asia/Tokyo")
+			now := time.Now().In(jst)
+			session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+			db.Table("guest").Omit("exhibit_id", "revoke_at", "note").Table("guest").Create(&guestParam{
 				ReservationId: registerPostData.ReservationId,
 				GuestId:       v,
 				GuestType:     registerPostData.GuestType,
@@ -92,9 +94,47 @@ func Register() echo.HandlerFunc {
 				RegisterAt:    now,
 				Available:     1,
 			})
+			db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
+				SessionId:      session_id,
+				GuestId:        v,
+				ExhibitId:      "entrance",
+				EnterAt:        now,
+				EnterOperation: user_id,
+				Available:      1,
+			})
 		}
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{})
 	}
+}
+
+func Revoke() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+
+		jst, _ := time.LoadLocation("Asia/Tokyo")
+		now := time.Now().In(jst)
+		sessionEx := sessionParam{
+			ExitAt:        now,
+			ExitOperation: user_id,
+		}
+
+		db := database.ConnectGORM(user_id, password)
+		db.Table("session").Where("guest_id = ?", c.Param("guest_id")).Where("exhibit_id = 'entrance'").Where("exit_at is ?", gorm.Expr("NULL")).Updates(&sessionEx)
+		db.Close()
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+type sessionParam struct {
+	SessionId      string    `json:"session_id"`
+	GuestId        string    `json:"guest_id"`
+	ExhibitId      string    `json:"exhibit_id"`
+	EnterAt        time.Time `json:"enter_at"`
+	EnterOperation string    `json:"enter_operation"`
+	ExitAt         time.Time `json:"exit_at"`
+	ExitOperation  string    `json:"exit_operation"`
+	Available      int       `json:"available"`
 }

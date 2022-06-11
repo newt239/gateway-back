@@ -44,7 +44,7 @@ func InfoEachExhibit() echo.HandlerFunc {
 			"exhibit_name": result.ExhibitName,
 			"exhibit_type": result.ExhibitType,
 			"room_name":    result.RoomName,
-			"Status":       result.Status,
+			"status":       result.Status,
 		})
 	}
 }

@@ -54,9 +54,7 @@ func Exit() echo.HandlerFunc {
 
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
 		sessionEx := session{
-			SessionId:     session_id,
 			ExitAt:        now,
 			ExitOperation: user_id,
 		}
@@ -65,9 +63,7 @@ func Exit() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		db.Table("session").Where("guest_id = ?", exitPostParam.GuestId).Where("exhibit_id = ?", exitPostParam.ExhibitId).Where("exit_at is ?", gorm.Expr("NULL")).Updates(&sessionEx).Scan(&result)
 		db.Close()
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"session_id": session_id,
-		})
+		return c.NoContent(http.StatusOK)
 	}
 }
 
