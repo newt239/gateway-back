@@ -39,7 +39,7 @@ func InfoAllExhibit() echo.HandlerFunc {
 			Count     int    `json:"count"`
 		}
 		var result []infoAllExhibitParam
-		db.Raw("").Scan(&result)
+		db.Raw("select count(*)as count, guest.guest_type from gateway.session inner join gateway.guest on session.guest_id = guest.guest_id  where exhibit_id = 'entrance' and exit_at is null group by guest.guest_type;").Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
@@ -55,7 +55,7 @@ func InfoEachExhibit() echo.HandlerFunc {
 		var result exhibit
 		db.Where("exhibit_id = ?", exhibit_id).First(&exhibit{}).Scan(&result)
 		db.Close()
-
+		fmt.Println(result)
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"exhibit_id":   result.ExhibitId,
 			"exhibit_name": result.ExhibitName,
