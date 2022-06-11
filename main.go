@@ -69,9 +69,6 @@ func main() {
 
 	admin := v1.Group("/admin")
 	admin.Use(middleware.JWT([]byte("secret")))
-	admin.POST("/user/create", adminRoute.CreateUser())
-	admin.DELETE("/user/delete/:user_id", adminRoute.DeleteUser())
-	admin.GET("/user/created-by-me", adminRoute.CreatedByMeUserList())
 	admin.POST("/exhibit/create", adminRoute.CreateExhibit())
 	admin.DELETE("/exhibit/delete/:exhibit_id", adminRoute.DeleteExhibit())
 
