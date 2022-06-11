@@ -49,6 +49,25 @@ func InfoEachExhibit() echo.HandlerFunc {
 	}
 }
 
+func CurrentAllExhibitData() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+
+		type currentEachExhibitParam struct {
+			ID          string `json:"id"`
+			ExhibitName string `json:"exhibit_name"`
+			Current     string `json:"current"`
+			Capacity    string `json:"capacity"`
+		}
+		var result []currentEachExhibitParam
+		db := database.ConnectGORM(user_id, password)
+		db.Raw("SELECT exhibit.exhibit_id AS id, exhibit_name, count, capacity FROM exhibit INNER JOIN current ON exhibit.exhibit_id = current.exhibit_id;").Scan(&result)
+		db.Close()
+
+		return c.JSON(http.StatusOK, result)
+	}
+}
+
 func CurrentEachExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
