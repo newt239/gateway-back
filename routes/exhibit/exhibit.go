@@ -55,7 +55,7 @@ func InfoEachExhibit() echo.HandlerFunc {
 		var result exhibit
 		db.Where("exhibit_id = ?", exhibit_id).First(&exhibit{}).Scan(&result)
 		var countResult struct{ Current int }
-		db.Raw("select count(*) as current from gateway.session where exhibit_id = '?' and exit_at is null group by guest_id", exhibit_id).Scan(countResult)
+		db.Raw("select count(*) as current from gateway.session where exhibit_id = ? and exit_at is null group by guest_id", exhibit_id).Scan(countResult)
 		db.Close()
 		fmt.Println(result)
 		return c.JSON(http.StatusOK, map[string]interface{}{
