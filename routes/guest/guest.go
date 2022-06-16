@@ -54,6 +54,26 @@ func Info() echo.HandlerFunc {
 	}
 }
 
+func Activity() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		guest_id := c.Param("guest_id")
+
+		type resultParam struct {
+			ExhibitId string `json:"exhibit_id"`
+			EnterAt   string `json:"enter_at"`
+			ExitAt    string `json:"exit_at"`
+		}
+		var result []resultParam
+		db.Raw("select exhibit_id, enter_at, ifnull(exit_at, 'current')as exit_at from session where guest_id = ? order by enter_at;", guest_id).Scan(&result)
+		db.Close()
+		fmt.Println(result)
+		return c.JSON(http.StatusOK, result)
+	}
+}
+
 func Register() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
