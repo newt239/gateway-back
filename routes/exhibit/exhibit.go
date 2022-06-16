@@ -19,10 +19,10 @@ func ExhibitList() echo.HandlerFunc {
 		type exhibitListParam struct {
 			ExhibitId   string `json:"exhibit_id"`
 			ExhibitName string `json:"exhibit_name"`
-			Status      int    `json:"status"`
+			GroupName   string `json:"group_name"`
 		}
 		var result []exhibitListParam
-		db.Table("exhibit").Find(&exhibit{}).Scan(&result)
+		db.Table("exhibit").Where("status = 1").Find(&exhibit{}).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
