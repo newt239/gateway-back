@@ -20,6 +20,7 @@ func ExhibitList() echo.HandlerFunc {
 			ExhibitId   string `json:"exhibit_id"`
 			ExhibitName string `json:"exhibit_name"`
 			GroupName   string `json:"group_name"`
+			ExhibitType string `json:"exhibit_type"`
 		}
 		var result []exhibitListParam
 		db.Table("exhibit").Where("status = 1").Find(&exhibit{}).Scan(&result)
