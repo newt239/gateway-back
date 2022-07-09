@@ -16,21 +16,16 @@ func Login() echo.HandlerFunc {
 		if err := c.Bind(&loginPostParam); err != nil {
 			return err
 		}
-
 		user_id, password := loginPostParam.UserId, loginPostParam.Password
-		db := database.ConnectGORM(user_id, password)
-
 		token := jwt.New(jwt.SigningMethodHS256)
 		claims := token.Claims.(jwt.MapClaims)
 		claims["user_id"] = user_id
 		claims["password"] = password
 		claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
 		tokenString, err := token.SignedString([]byte("secret"))
 		if err != nil {
 			return err
 		}
-		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]string{
 			"token": tokenString,
@@ -42,7 +37,6 @@ func Me() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		var result user
 		db.Where("user_id = ?", user_id).First(&user{}).Scan(&result)
 		db.Close()

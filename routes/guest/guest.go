@@ -2,7 +2,6 @@ package guestRoute
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -29,7 +28,6 @@ func Info() echo.HandlerFunc {
 		}
 		var guestInfoResult guest
 		db.Table("guest").Where("guest_id = ?", guest_id).First(&guestInfoResult)
-		fmt.Println(guestInfoResult)
 
 		type sessionInfoResultParam struct {
 			ExhibitId string `json:"exhibit_id"`
@@ -57,28 +55,24 @@ func Info() echo.HandlerFunc {
 func Activity() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-		db := database.ConnectGORM(user_id, password)
-
 		guest_id := c.Param("guest_id")
-
 		type resultParam struct {
 			ExhibitId string `json:"exhibit_id"`
 			EnterAt   string `json:"enter_at"`
 			ExitAt    string `json:"exit_at"`
 		}
 		var result []resultParam
+		db := database.ConnectGORM(user_id, password)
 		db.Raw("select exhibit_id, enter_at, ifnull(exit_at, 'current')as exit_at from session where guest_id = ? order by enter_at;", guest_id).Scan(&result)
 		db.Close()
-		fmt.Println(result)
+
 		return c.JSON(http.StatusOK, result)
 	}
 }
 
 func Register() echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-
 		type guestRegisterPostParam struct {
 			ReservationId string   `json:"reservation_id"`
 			GuestType     string   `json:"guest_type"`
@@ -89,7 +83,6 @@ func Register() echo.HandlerFunc {
 		if err := c.Bind(&registerPostData); err != nil {
 			return err
 		}
-
 		type guestParam struct {
 			ReservationId string    `json:"reservation_id"`
 			GuestId       string    `json:"guest_id"`
@@ -99,7 +92,6 @@ func Register() echo.HandlerFunc {
 			RegisterAt    time.Time `json:"register_at"`
 			Available     int       `json:"available"`
 		}
-
 		db := database.ConnectGORM(user_id, password)
 		for _, v := range registerPostData.GuestIdList {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
@@ -131,19 +123,17 @@ func Register() echo.HandlerFunc {
 
 func Revoke() echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
 		sessionEx := sessionParam{
 			ExitAt:        now,
 			ExitOperation: user_id,
 		}
-
 		db := database.ConnectGORM(user_id, password)
 		db.Table("session").Where("guest_id = ?", c.Param("guest_id")).Where("exhibit_id = 'entrance'").Where("exit_at is ?", gorm.Expr("NULL")).Updates(&sessionEx)
 		db.Close()
+
 		return c.NoContent(http.StatusOK)
 	}
 }

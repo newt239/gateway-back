@@ -13,7 +13,6 @@ func Info() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		var result reservation
 		db.Where("reservation_id = ?", c.Param("reservation_id")).First(&reservation{}).Scan(&result)
 		db.Close()

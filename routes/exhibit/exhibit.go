@@ -15,7 +15,6 @@ func ExhibitList() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		type exhibitListParam struct {
 			ExhibitId   string `json:"exhibit_id"`
 			ExhibitName string `json:"exhibit_name"`
@@ -58,7 +57,7 @@ func InfoEachExhibit() echo.HandlerFunc {
 		var countResult struct{ Current int }
 		db.Raw("select count(*) as current from gateway.session where exhibit_id = ? and exit_at is null group by guest_id", exhibit_id).Scan(countResult)
 		db.Close()
-		fmt.Println(result)
+
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"exhibit_id":   result.ExhibitId,
 			"exhibit_name": result.ExhibitName,
