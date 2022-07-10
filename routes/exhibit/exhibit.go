@@ -38,7 +38,7 @@ func InfoAllExhibit() echo.HandlerFunc {
 			Count     int    `json:"count"`
 		}
 		var result []infoAllExhibitParam
-		db.Raw("select count(*)as count, guest.guest_type from gateway.session inner join gateway.guest on session.guest_id = guest.guest_id  where exhibit_id = 'entrance' and exit_at is null group by guest.guest_type;").Scan(&result)
+		db.Raw("select count(*) as count, guest.guest_type from gateway.session inner join gateway.guest on session.guest_id = guest.guest_id  where exhibit_id = 'entrance' and exit_at is null group by guest.guest_type;").Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
@@ -48,12 +48,17 @@ func InfoAllExhibit() echo.HandlerFunc {
 func InfoEachExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-		db := database.ConnectGORM(user_id, password)
 		exhibit_id := c.Param("exhibit_id")
+
+		db := database.ConnectGORM(user_id, password)
 		var result exhibit
 		db.Table("exhibit").Where("exhibit_id = ?", exhibit_id).First(&exhibit{}).Scan(&result)
-		var countResult struct{ Current int }
-		db.Raw("select count(*) as current from gateway.session where exhibit_id = ? and exit_at is null group by guest_id", exhibit_id).Scan(countResult)
+
+		type currentGuestListType struct {
+			GuestId string
+		}
+		var currentGuestListResult []currentGuestListType
+		db.Table("session").Select("guest_id").Where("exhibit_id = ?", exhibit_id).Where("exit_at is null").Scan(&currentGuestListResult)
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -62,7 +67,7 @@ func InfoEachExhibit() echo.HandlerFunc {
 			"exhibit_type": result.ExhibitType,
 			"room_name":    result.RoomName,
 			"capacity":     result.Capacity,
-			"current":      countResult.Current,
+			"current":      len(currentGuestListResult),
 			"status":       result.Status,
 		})
 	}
