@@ -74,6 +74,12 @@ func Register() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 
+		type guestRegisterPostParam struct {
+			ReservationId string   `json:"reservation_id"`
+			GuestType     string   `json:"guest_type"`
+			GuestIdList   []string `json:"guest_id"`
+			Part          int      `json:"part"`
+		}
 		registerPostData := guestRegisterPostParam{}
 		if err := c.Bind(&registerPostData); err != nil {
 			return err
@@ -112,47 +118,45 @@ func Revoke() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 
+		type guestRegisterPostParam struct {
+			ReservationId string `json:"reservation_id"`
+			GuestType     string `json:"guest_type"`
+			GuestId       string `json:"guest_id"`
+			Part          int    `json:"part"`
+		}
 		registerPostData := guestRegisterPostParam{}
 		if err := c.Bind(&registerPostData); err != nil {
 			return err
 		}
 
 		db := database.ConnectGORM(user_id, password)
-		for _, guest_id := range registerPostData.GuestIdList {
-			jst, _ := time.LoadLocation("Asia/Tokyo")
-			now := time.Now().In(jst)
-			session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
-			db.Table("guest").Omit("exhibit_id", "revoke_at").Create(&guestParam{
-				ReservationId: registerPostData.ReservationId,
-				GuestId:       guest_id,
-				GuestType:     registerPostData.GuestType,
-				Part:          registerPostData.Part,
-				UserId:        user_id,
-				RegisterAt:    now,
-				Available:     1,
-				Note:          "spare",
-			})
-			db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
-				SessionId:      session_id,
-				GuestId:        guest_id,
-				ExhibitId:      "info_center",
-				EnterAt:        now,
-				EnterOperation: user_id,
-				Available:      1,
-			})
-		}
+		jst, _ := time.LoadLocation("Asia/Tokyo")
+		now := time.Now().In(jst)
+		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		db.Table("guest").Omit("exhibit_id", "revoke_at").Create(&guestParam{
+			ReservationId: registerPostData.ReservationId,
+			GuestId:       registerPostData.GuestId,
+			GuestType:     registerPostData.GuestType,
+			Part:          registerPostData.Part,
+			UserId:        user_id,
+			RegisterAt:    now,
+			Available:     1,
+			Note:          "spare",
+		})
+		db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
+			SessionId:      session_id,
+			GuestId:        registerPostData.GuestId,
+			ExhibitId:      "info_center",
+			EnterAt:        now,
+			EnterOperation: user_id,
+			Available:      1,
+		})
 		db.Close()
 
 		return c.NoContent(http.StatusOK)
 	}
 }
 
-type guestRegisterPostParam struct {
-	ReservationId string   `json:"reservation_id"`
-	GuestType     string   `json:"guest_type"`
-	GuestIdList   []string `json:"guest_id"`
-	Part          int      `json:"part"`
-}
 type guestParam struct {
 	ReservationId string    `json:"reservation_id"`
 	GuestId       string    `json:"guest_id"`
