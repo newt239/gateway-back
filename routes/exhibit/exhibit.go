@@ -33,7 +33,6 @@ func InfoAllExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		type infoAllExhibitParam struct {
 			GuestType string `json:"guest_type"`
 			Count     int    `json:"count"`
@@ -50,10 +49,9 @@ func InfoEachExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		exhibit_id := c.Param("exhibit_id")
 		var result exhibit
-		db.Where("exhibit_id = ?", exhibit_id).First(&exhibit{}).Scan(&result)
+		db.Table("exhibit").Where("exhibit_id = ?", exhibit_id).First(&exhibit{}).Scan(&result)
 		var countResult struct{ Current int }
 		db.Raw("select count(*) as current from gateway.session where exhibit_id = ? and exit_at is null group by guest_id", exhibit_id).Scan(countResult)
 		db.Close()
@@ -73,7 +71,6 @@ func InfoEachExhibit() echo.HandlerFunc {
 func CurrentAllExhibitData() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-
 		type currentEachExhibitParam struct {
 			ID          string `json:"id"`
 			ExhibitName string `json:"exhibit_name"`
@@ -93,9 +90,7 @@ func CurrentEachExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		exhibit_id := c.Param("exhibit_id")
-
 		type currentEachExhibitParam struct {
 			ID        string `json:"id"`
 			SessionId string `json:"session_id"`
@@ -114,7 +109,6 @@ func HistoryEachExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		type historyParam struct {
 			Time  time.Time `json:"time"`
 			Count int       `json:"count"`

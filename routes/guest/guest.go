@@ -23,7 +23,7 @@ func Info() echo.HandlerFunc {
 			GuestId       string `json:"guest_id"`
 			GuestType     string `json:"guest_type"`
 			ReservationId string `json:"reservation_id"`
-			Part          string `json:"part"`
+			Part          int    `json:"part"`
 			Available     int    `json:"available"`
 		}
 		var guestInfoResult guest
@@ -77,7 +77,7 @@ func Register() echo.HandlerFunc {
 			ReservationId string   `json:"reservation_id"`
 			GuestType     string   `json:"guest_type"`
 			GuestIdList   []string `json:"guest_id"`
-			Part          string   `json:"part"`
+			Part          int      `json:"part"`
 		}
 		registerPostData := guestRegisterPostParam{}
 		if err := c.Bind(&registerPostData); err != nil {
@@ -87,19 +87,19 @@ func Register() echo.HandlerFunc {
 			ReservationId string    `json:"reservation_id"`
 			GuestId       string    `json:"guest_id"`
 			GuestType     string    `json:"guest_type"`
-			Part          string    `json:"part"`
+			Part          int       `json:"part"`
 			UserId        string    `json:"user_id"`
 			RegisterAt    time.Time `json:"register_at"`
 			Available     int       `json:"available"`
 		}
 		db := database.ConnectGORM(user_id, password)
-		for _, v := range registerPostData.GuestIdList {
+		for _, guest_id := range registerPostData.GuestIdList {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
 			session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
-			db.Table("guest").Omit("exhibit_id", "revoke_at", "note").Table("guest").Create(&guestParam{
+			db.Table("guest").Omit("exhibit_id", "revoke_at", "note").Create(&guestParam{
 				ReservationId: registerPostData.ReservationId,
-				GuestId:       v,
+				GuestId:       guest_id,
 				GuestType:     registerPostData.GuestType,
 				Part:          registerPostData.Part,
 				UserId:        user_id,
@@ -108,7 +108,7 @@ func Register() echo.HandlerFunc {
 			})
 			db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
 				SessionId:      session_id,
-				GuestId:        v,
+				GuestId:        guest_id,
 				ExhibitId:      "entrance",
 				EnterAt:        now,
 				EnterOperation: user_id,

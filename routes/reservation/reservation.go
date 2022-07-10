@@ -33,7 +33,7 @@ type reservation struct {
 	GuestType     string `json:"guest_type"`
 	Count         int    `json:"count"`
 	Registered    int    `json:"registered"`
-	Part          string `json:"part"`
+	Part          int    `json:"part"`
 	Available     int    `json:"available"`
 	Note          string `json:"note"`
 }
