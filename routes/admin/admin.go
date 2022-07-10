@@ -34,7 +34,6 @@ func CreateExhibit() echo.HandlerFunc {
 			Capacity:    newExhibitData.Capacity,
 			LastUpdate:  now,
 		}
-
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
 		db.Table("exhibit").Omit("position", "status", "note").Create(&exhibitEx)
@@ -48,7 +47,6 @@ func DeleteExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		db.Exec(fmt.Sprintf("DELETE FROM gateway.exhibit WHERE exhibit_id='%s';", c.Param("exhibit_id")))
 		db.Close()
 

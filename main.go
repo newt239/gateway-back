@@ -56,7 +56,7 @@ func main() {
 	guest.GET("/info/:guest_id", guestRoute.Info())
 	guest.GET("/activity/:guest_id", guestRoute.Activity())
 	guest.POST("/register", guestRoute.Register())
-	guest.POST("/revoke/:guest_id", guestRoute.Revoke())
+	guest.POST("/revoke", guestRoute.Revoke())
 
 	reservation := v1.Group("/reservation")
 	reservation.Use(middleware.JWT([]byte("secret")))

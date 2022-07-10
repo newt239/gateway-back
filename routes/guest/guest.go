@@ -2,7 +2,6 @@ package guestRoute
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,12 +23,11 @@ func Info() echo.HandlerFunc {
 			GuestId       string `json:"guest_id"`
 			GuestType     string `json:"guest_type"`
 			ReservationId string `json:"reservation_id"`
-			Part          string `json:"part"`
+			Part          int    `json:"part"`
 			Available     int    `json:"available"`
 		}
 		var guestInfoResult guest
 		db.Table("guest").Where("guest_id = ?", guest_id).First(&guestInfoResult)
-		fmt.Println(guestInfoResult)
 
 		type sessionInfoResultParam struct {
 			ExhibitId string `json:"exhibit_id"`
@@ -57,57 +55,44 @@ func Info() echo.HandlerFunc {
 func Activity() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-		db := database.ConnectGORM(user_id, password)
-
 		guest_id := c.Param("guest_id")
-
 		type resultParam struct {
 			ExhibitId string `json:"exhibit_id"`
 			EnterAt   string `json:"enter_at"`
 			ExitAt    string `json:"exit_at"`
 		}
 		var result []resultParam
-		db.Raw("select exhibit_id, enter_at, ifnull(exit_at, 'current')as exit_at from session where guest_id = ? order by enter_at;", guest_id).Scan(&result)
+		db := database.ConnectGORM(user_id, password)
+		db.Raw("select exhibit_id, enter_at, ifnull(exit_at, 'current') as exit_at from session where guest_id = ? order by enter_at;", guest_id).Scan(&result)
 		db.Close()
-		fmt.Println(result)
+
 		return c.JSON(http.StatusOK, result)
 	}
 }
 
 func Register() echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 
 		type guestRegisterPostParam struct {
 			ReservationId string   `json:"reservation_id"`
 			GuestType     string   `json:"guest_type"`
 			GuestIdList   []string `json:"guest_id"`
-			Part          string   `json:"part"`
+			Part          int      `json:"part"`
 		}
 		registerPostData := guestRegisterPostParam{}
 		if err := c.Bind(&registerPostData); err != nil {
 			return err
 		}
 
-		type guestParam struct {
-			ReservationId string    `json:"reservation_id"`
-			GuestId       string    `json:"guest_id"`
-			GuestType     string    `json:"guest_type"`
-			Part          string    `json:"part"`
-			UserId        string    `json:"user_id"`
-			RegisterAt    time.Time `json:"register_at"`
-			Available     int       `json:"available"`
-		}
-
 		db := database.ConnectGORM(user_id, password)
-		for _, v := range registerPostData.GuestIdList {
+		for _, guest_id := range registerPostData.GuestIdList {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
 			session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
-			db.Table("guest").Omit("exhibit_id", "revoke_at", "note").Table("guest").Create(&guestParam{
+			db.Table("guest").Omit("exhibit_id", "revoke_at", "note").Create(&guestParam{
 				ReservationId: registerPostData.ReservationId,
-				GuestId:       v,
+				GuestId:       guest_id,
 				GuestType:     registerPostData.GuestType,
 				Part:          registerPostData.Part,
 				UserId:        user_id,
@@ -116,7 +101,7 @@ func Register() echo.HandlerFunc {
 			})
 			db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
 				SessionId:      session_id,
-				GuestId:        v,
+				GuestId:        guest_id,
 				ExhibitId:      "entrance",
 				EnterAt:        now,
 				EnterOperation: user_id,
@@ -131,21 +116,56 @@ func Register() echo.HandlerFunc {
 
 func Revoke() echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 
-		jst, _ := time.LoadLocation("Asia/Tokyo")
-		now := time.Now().In(jst)
-		sessionEx := sessionParam{
-			ExitAt:        now,
-			ExitOperation: user_id,
+		type guestRegisterPostParam struct {
+			ReservationId string `json:"reservation_id"`
+			GuestType     string `json:"guest_type"`
+			GuestId       string `json:"guest_id"`
+			Part          int    `json:"part"`
+		}
+		registerPostData := guestRegisterPostParam{}
+		if err := c.Bind(&registerPostData); err != nil {
+			return err
 		}
 
 		db := database.ConnectGORM(user_id, password)
-		db.Table("session").Where("guest_id = ?", c.Param("guest_id")).Where("exhibit_id = 'entrance'").Where("exit_at is ?", gorm.Expr("NULL")).Updates(&sessionEx)
+		jst, _ := time.LoadLocation("Asia/Tokyo")
+		now := time.Now().In(jst)
+		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		db.Table("guest").Omit("exhibit_id", "revoke_at").Create(&guestParam{
+			ReservationId: registerPostData.ReservationId,
+			GuestId:       registerPostData.GuestId,
+			GuestType:     registerPostData.GuestType,
+			Part:          registerPostData.Part,
+			UserId:        user_id,
+			RegisterAt:    now,
+			Available:     1,
+			Note:          "spare",
+		})
+		db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
+			SessionId:      session_id,
+			GuestId:        registerPostData.GuestId,
+			ExhibitId:      "info_center",
+			EnterAt:        now,
+			EnterOperation: user_id,
+			Available:      1,
+		})
 		db.Close()
+
 		return c.NoContent(http.StatusOK)
 	}
+}
+
+type guestParam struct {
+	ReservationId string    `json:"reservation_id"`
+	GuestId       string    `json:"guest_id"`
+	GuestType     string    `json:"guest_type"`
+	Part          int       `json:"part"`
+	UserId        string    `json:"user_id"`
+	RegisterAt    time.Time `json:"register_at"`
+	Available     int       `json:"available"`
+	Note          string    `json:"spare"`
 }
 
 type sessionParam struct {

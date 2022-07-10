@@ -15,12 +15,10 @@ import (
 func Enter() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-
 		enterPostParam := activityPostParam{}
 		if err := c.Bind(&enterPostParam); err != nil {
 			return err
 		}
-
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
 		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
@@ -32,7 +30,6 @@ func Enter() echo.HandlerFunc {
 			EnterOperation: user_id,
 			Available:      1,
 		}
-
 		db := database.ConnectGORM(user_id, password)
 		db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionEx)
 		db.Close()
@@ -46,12 +43,10 @@ func Enter() echo.HandlerFunc {
 func Exit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
-
 		exitPostParam := activityPostParam{}
 		if err := c.Bind(&exitPostParam); err != nil {
 			return err
 		}
-
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
 		sessionEx := session{
@@ -59,10 +54,10 @@ func Exit() echo.HandlerFunc {
 			ExitOperation: user_id,
 		}
 		var result session
-
 		db := database.ConnectGORM(user_id, password)
 		db.Table("session").Where("guest_id = ?", exitPostParam.GuestId).Where("exhibit_id = ?", exitPostParam.ExhibitId).Where("exit_at is ?", gorm.Expr("NULL")).Updates(&sessionEx).Scan(&result)
 		db.Close()
+
 		return c.NoContent(http.StatusOK)
 	}
 }

@@ -17,10 +17,11 @@ func ConnectGORM(user_id string, password string) *gorm.DB {
 	CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?parseTime=true&loc=Asia%2FTokyo"
 
 	db, err := gorm.Open(DBMS, CONNECT)
-
 	if err != nil {
+		db.Close()
 		panic(err.Error())
 	}
+
 	db.SingularTable(true)
 	return db
 }
@@ -36,10 +37,11 @@ func ConnectAdminGORM(user_id string, password string) *gorm.DB {
 	CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?parseTime=true&loc=Asia%2FTokyo"
 
 	db, err := gorm.Open(DBMS, CONNECT)
-
 	if err != nil {
+		db.Close()
 		panic(err.Error())
 	}
+
 	db.SingularTable(true)
 	return db
 }
