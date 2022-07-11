@@ -121,7 +121,8 @@ func Revoke() echo.HandlerFunc {
 		type guestRegisterPostParam struct {
 			ReservationId string `json:"reservation_id"`
 			GuestType     string `json:"guest_type"`
-			GuestId       string `json:"guest_id"`
+			NewGuestId    string `json:"new_guest_id"`
+			OldGuestId    string `json:"old_guest_id"`
 			Part          int    `json:"part"`
 		}
 		registerPostData := guestRegisterPostParam{}
@@ -135,7 +136,7 @@ func Revoke() echo.HandlerFunc {
 		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
 		db.Table("guest").Omit("exhibit_id", "revoke_at").Create(&guestParam{
 			ReservationId: registerPostData.ReservationId,
-			GuestId:       registerPostData.GuestId,
+			GuestId:       registerPostData.NewGuestId,
 			GuestType:     registerPostData.GuestType,
 			Part:          registerPostData.Part,
 			UserId:        user_id,
@@ -145,12 +146,18 @@ func Revoke() echo.HandlerFunc {
 		})
 		db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
 			SessionId:      session_id,
-			GuestId:        registerPostData.GuestId,
+			GuestId:        registerPostData.NewGuestId,
 			ExhibitId:      "info_center",
 			EnterAt:        now,
 			EnterOperation: user_id,
 			Available:      1,
 		})
+		if registerPostData.OldGuestId != "" {
+			db.Table("guest").Where("guest_id = ?", registerPostData.OldGuestId).Update(&guestParam{
+				RevokeAt:  now,
+				Available: 0,
+			})
+		}
 		db.Close()
 
 		return c.NoContent(http.StatusOK)
@@ -164,6 +171,7 @@ type guestParam struct {
 	Part          int       `json:"part"`
 	UserId        string    `json:"user_id"`
 	RegisterAt    time.Time `json:"register_at"`
+	RevokeAt      time.Time `json:"revoke_at"`
 	Available     int       `json:"available"`
 	Note          string    `json:"spare"`
 }
