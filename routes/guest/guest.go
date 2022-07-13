@@ -147,7 +147,7 @@ func Revoke() echo.HandlerFunc {
 		db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
 			SessionId:      session_id,
 			GuestId:        registerPostData.NewGuestId,
-			ExhibitId:      "info_center",
+			ExhibitId:      "entrance",
 			EnterAt:        now,
 			EnterOperation: user_id,
 			Available:      1,
