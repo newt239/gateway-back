@@ -18,9 +18,10 @@ func Info() echo.HandlerFunc {
 
 		type reservationIdListType struct {
 			GuestId string
+			IsSpare int
 		}
 		var reservationIdListResult []reservationIdListType
-		db.Table("guest").Select("guest_id").Where("reservation_id = ?", c.Param("reservation_id")).Where("exit_at is null").Scan(&reservationIdListResult)
+		db.Table("guest").Select("guest_id", "is_spare").Where("reservation_id = ?", c.Param("reservation_id")).Where("available = 1").Scan(&reservationIdListResult)
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
