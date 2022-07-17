@@ -79,12 +79,16 @@ func CurrentAllExhibitData() echo.HandlerFunc {
 		type currentEachExhibitParam struct {
 			ID          string `json:"id"`
 			ExhibitName string `json:"exhibit_name"`
+			GroupName   string `json:"group_name"`
+			RoomName    string `json:"room_name"`
+			ExhibitType string `json:"exhibit_type"`
+			Position    string `json:"position"`
 			Count       int    `json:"count"`
 			Capacity    int    `json:"capacity"`
 		}
 		var result []currentEachExhibitParam
 		db := database.ConnectGORM(user_id, password)
-		db.Raw("SELECT exhibit.exhibit_id AS id, exhibit_name, ifnull(count, 0) as count, capacity FROM exhibit LEFT JOIN current ON exhibit.exhibit_id = current.exhibit_id;").Scan(&result)
+		db.Raw("SELECT exhibit.exhibit_id AS id, exhibit_name, group_name, room_name, exhibit_type, position, ifnull(count, 0) as count, capacity FROM exhibit LEFT JOIN current ON exhibit.exhibit_id = current.exhibit_id;").Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
