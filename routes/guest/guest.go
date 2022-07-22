@@ -34,7 +34,7 @@ func Info() echo.HandlerFunc {
 		}
 		var sessionInfoResult sessionInfoResultParam
 		exhibit_id := ""
-		err := db.Table("session").Select("exhibit_id").Where("guest_id = ?", guest_id).Where("exit_at IS NULL").Where("exhibit_id != 'entrance'").First(&sessionInfoResult).Error
+		err := db.Table("session").Select("exhibit_id").Where("guest_id = ?", guest_id).Where("is_finished = 0").Where("exhibit_id != 'entrance'").First(&sessionInfoResult).Error
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			exhibit_id = sessionInfoResult.ExhibitId
 		}
