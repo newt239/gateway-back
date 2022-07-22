@@ -90,9 +90,8 @@ func Register() echo.HandlerFunc {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
 			session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
-			db.Table("guest").Omit("exhibit_id", "revoke_at", "note").Create(&guestParam{
+			db.Table("guest").Omit("exhibit_id", "revoke_at", "note").Where("guest_id = ?", guest_id).Update(&guestParam{
 				ReservationId: registerPostData.ReservationId,
-				GuestId:       guest_id,
 				GuestType:     registerPostData.GuestType,
 				Part:          registerPostData.Part,
 				UserId:        user_id,
