@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/newt239/gateway-back/database"
 
 	"github.com/dgrijalva/jwt-go"
@@ -50,12 +49,13 @@ func Exit() echo.HandlerFunc {
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
 		sessionEx := session{
+			IsFinished:    1,
 			ExitAt:        now,
 			ExitOperation: user_id,
 		}
 		var result session
 		db := database.ConnectGORM(user_id, password)
-		db.Table("session").Where("guest_id = ?", exitPostParam.GuestId).Where("exhibit_id = ?", exitPostParam.ExhibitId).Where("exit_at is ?", gorm.Expr("NULL")).Updates(&sessionEx).Scan(&result)
+		db.Table("session").Where("guest_id = ?", exitPostParam.GuestId).Where("exhibit_id = ?", exitPostParam.ExhibitId).Where("is_finished = 0").Updates(&sessionEx).Scan(&result)
 		db.Close()
 
 		return c.NoContent(http.StatusOK)
@@ -73,6 +73,7 @@ type session struct {
 	GuestId        string    `json:"guest_id"`
 	EnterAt        time.Time `json:"enter_at"`
 	EnterOperation string    `json:"enter_operation"`
+	IsFinished     int       `json:"is_finished"`
 	ExitAt         time.Time `json:"exit_at"`
 	ExitOperation  string    `json:"exit_operation"`
 	Available      int       `json:"available"`
