@@ -24,7 +24,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowCredentials: true,
-		AllowOrigins:     []string{"http://localhost:8000", "https://gateway.sh-fes.com", "https://develop.d9j2gq2ifp1u4.amplifyapp.com/"},
+		AllowOrigins:     []string{"http://localhost:8000", "https://gateway.sh-fes.com", "https://dev.gateway.sh-fes.com"},
 		AllowHeaders: []string{
 			echo.HeaderAccessControlAllowHeaders,
 			echo.HeaderContentType,
