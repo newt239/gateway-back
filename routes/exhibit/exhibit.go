@@ -123,7 +123,7 @@ func HistoryEachExhibit() echo.HandlerFunc {
 			Count int       `json:"count"`
 		}
 		var result []historyParam
-		db.Raw("SELECT timestamp(DATE_FORMAT(enter_at, '%Y-%m-%d %H:00:00')) AS time, COUNT(*) AS count FROM gateway.session WHERE exhibit_id = ? AND DATE(enter_at) = ? GROUP BY DATE_FORMAT(enter_at, '%Y%m%d%H');", c.Param("exhibit_id"), c.Param("day")).Scan(&result)
+		db.Raw("SELECT timestamp(DATE_FORMAT(enter_at, '%Y-%m-%d %H:00:00')) AS time, COUNT(enter_at) AS count FROM gateway.session WHERE exhibit_id = ? AND DATE(enter_at) = ? GROUP BY time;", c.Param("exhibit_id"), c.Param("day")).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)

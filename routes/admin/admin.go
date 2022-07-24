@@ -63,7 +63,7 @@ type user struct {
 type exhibit struct {
 	ExhibitId   string    `json:"exhibit_id"`
 	ExhibitName string    `json:"exhibit_name"`
-	RoomName    string    `json:"position_name"`
+	RoomName    string    `json:"room_name"`
 	ExhibitType string    `json:"exhibit_type"`
 	Status      int       `json:"status"`
 	Capacity    int       `json:"capacity"`
