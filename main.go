@@ -50,6 +50,7 @@ func main() {
 	activity.Use(middleware.JWT([]byte("secret")))
 	activity.POST("/enter", activityRoute.Enter())
 	activity.POST("/exit", activityRoute.Exit())
+	activity.GET("/history/:from", activityRoute.History())
 
 	guest := v1.Group("/guest")
 	guest.Use(middleware.JWT([]byte("secret")))

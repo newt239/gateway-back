@@ -62,6 +62,31 @@ func Exit() echo.HandlerFunc {
 	}
 }
 
+func History() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		db := database.ConnectGORM(user_id, password)
+
+		t, _ := time.Parse("2006-01-02T15:04:05+09:00", c.Param("from"))
+		type activityHistoryListType struct {
+			SessionId string `json:"session_id"`
+			GuestId   string `json:"guest_id"`
+			ExhibitId string `json:"exhibit_id"`
+			Timestamp string `json:"timestamp"`
+		}
+		var enterActivityList []activityHistoryListType
+		db.Table("enter_activity").Where("timestamp > ?", t).Scan(&enterActivityList)
+		var exitActivityList []activityHistoryListType
+		db.Table("exit_activity").Where("timestamp > ?", t).Scan(&exitActivityList)
+		db.Close()
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"enter": enterActivityList,
+			"exit":  exitActivityList,
+		})
+	}
+}
+
 type activityPostParam struct {
 	ExhibitId string `json:"exhibit_id"`
 	GuestId   string `json:"guest_id"`
