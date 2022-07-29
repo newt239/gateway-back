@@ -75,9 +75,9 @@ func History() echo.HandlerFunc {
 			Timestamp string `json:"timestamp"`
 		}
 		var enterActivityList []activityHistoryListType
-		db.Table("enter_activity").Where("timestamp > ?", t).Scan(&enterActivityList)
+		db.Table("enter_activity").Where("timestamp > ?", t).Limit(50).Scan(&enterActivityList)
 		var exitActivityList []activityHistoryListType
-		db.Table("exit_activity").Where("timestamp > ?", t).Scan(&exitActivityList)
+		db.Table("exit_activity").Where("timestamp > ?", t).Limit(50).Scan(&exitActivityList)
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
