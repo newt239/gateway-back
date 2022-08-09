@@ -21,7 +21,7 @@ func ExhibitList() echo.HandlerFunc {
 			ExhibitType string `json:"exhibit_type"`
 		}
 		var result []exhibitListParam
-		db.Table("exhibit").Where("status = 1").Find(&exhibit{}).Scan(&result)
+		db.Table("exhibit").Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
@@ -67,7 +67,6 @@ func InfoEachExhibit() echo.HandlerFunc {
 			"room_name":    result.RoomName,
 			"capacity":     result.Capacity,
 			"current":      len(currentGuestListResult),
-			"status":       result.Status,
 		})
 	}
 }
@@ -81,13 +80,12 @@ func CurrentAllExhibitData() echo.HandlerFunc {
 			GroupName   string `json:"group_name"`
 			RoomName    string `json:"room_name"`
 			ExhibitType string `json:"exhibit_type"`
-			Position    string `json:"position"`
 			Count       int    `json:"count"`
 			Capacity    int    `json:"capacity"`
 		}
 		var result []currentEachExhibitParam
 		db := database.ConnectGORM(user_id, password)
-		db.Raw("SELECT exhibit.exhibit_id AS id, exhibit_name, group_name, room_name, exhibit_type, position, ifnull(count, 0) as count, capacity FROM exhibit LEFT JOIN current ON exhibit.exhibit_id = current.exhibit_id;").Scan(&result)
+		db.Raw("SELECT exhibit.exhibit_id AS id, exhibit_name, group_name, room_name, exhibit_type, ifnull(count, 0) as count, capacity FROM exhibit LEFT JOIN current ON exhibit.exhibit_id = current.exhibit_id;").Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
@@ -132,8 +130,7 @@ func HistoryEachExhibit() echo.HandlerFunc {
 type exhibit struct {
 	ExhibitId   string `json:"exhibit_id"`
 	ExhibitName string `json:"exhibit_name"`
-	RoomName    string `json:"position_name"`
+	RoomName    string `json:"room_name"`
 	ExhibitType string `json:"exhibit_type"`
-	Status      int    `json:"status"`
 	Capacity    int    `json:"capacity"`
 }
