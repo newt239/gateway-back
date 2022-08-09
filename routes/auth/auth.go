@@ -45,7 +45,6 @@ func Me() echo.HandlerFunc {
 			"user_id":      result.UserId,
 			"display_name": result.DisplayName,
 			"user_type":    result.UserType,
-			"role":         result.Role,
 			"available":    result.Available,
 		})
 	}
@@ -60,8 +59,6 @@ type user struct {
 	UserId      string `json:"user_id"`
 	DisplayName string `json:"display_name"`
 	UserType    string `json:"user_type"`
-	Role        string `json:"role"`
 	Available   int    `json:"available"`
-	Note        string `json:"note"`
 	CreatedBy   string `json:"created_by"`
 }

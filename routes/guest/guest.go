@@ -90,7 +90,7 @@ func Register() echo.HandlerFunc {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
 			session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
-			db.Table("guest").Omit("exhibit_id", "revoke_at", "note").Where("guest_id = ?", guest_id).Update(&guestParam{
+			db.Table("guest").Omit("exhibit_id", "revoke_at").Where("guest_id = ?", guest_id).Update(&guestParam{
 				ReservationId: registerPostData.ReservationId,
 				GuestType:     registerPostData.GuestType,
 				Part:          registerPostData.Part,
@@ -98,7 +98,7 @@ func Register() echo.HandlerFunc {
 				RegisterAt:    now,
 				Available:     1,
 			})
-			db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
+			db.Table("session").Omit("exit_at", "exit_operation").Create(&sessionParam{
 				SessionId:      session_id,
 				GuestId:        guest_id,
 				ExhibitId:      "entrance",
@@ -141,9 +141,8 @@ func Revoke() echo.HandlerFunc {
 			UserId:        user_id,
 			RegisterAt:    now,
 			Available:     1,
-			Note:          "spare",
 		})
-		db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionParam{
+		db.Table("session").Omit("exit_at", "exit_operation").Create(&sessionParam{
 			SessionId:      session_id,
 			GuestId:        registerPostData.NewGuestId,
 			ExhibitId:      "entrance",
@@ -172,7 +171,7 @@ type guestParam struct {
 	RegisterAt    time.Time `json:"register_at"`
 	RevokeAt      time.Time `json:"revoke_at"`
 	Available     int       `json:"available"`
-	Note          string    `json:"spare"`
+	IsSpare       string    `json:"is_spare"`
 }
 
 type sessionParam struct {
@@ -181,6 +180,7 @@ type sessionParam struct {
 	ExhibitId      string    `json:"exhibit_id"`
 	EnterAt        time.Time `json:"enter_at"`
 	EnterOperation string    `json:"enter_operation"`
+	IsFinished     int       `json:"is_finished"`
 	ExitAt         time.Time `json:"exit_at"`
 	ExitOperation  string    `json:"exit_operation"`
 	Available      int       `json:"available"`

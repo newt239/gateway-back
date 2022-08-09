@@ -130,13 +130,10 @@ func HistoryEachExhibit() echo.HandlerFunc {
 }
 
 type exhibit struct {
-	ExhibitId   string    `json:"exhibit_id"`
-	ExhibitName string    `json:"exhibit_name"`
-	RoomName    string    `json:"position_name"`
-	ExhibitType string    `json:"exhibit_type"`
-	Status      int       `json:"status"`
-	Capacity    int       `json:"capacity"`
-	Position    string    `json:"position"`
-	LastUpdate  time.Time `json:"last_update"`
-	Note        string    `json:"note"`
+	ExhibitId   string `json:"exhibit_id"`
+	ExhibitName string `json:"exhibit_name"`
+	RoomName    string `json:"position_name"`
+	ExhibitType string `json:"exhibit_type"`
+	Status      int    `json:"status"`
+	Capacity    int    `json:"capacity"`
 }

@@ -41,5 +41,4 @@ type reservation struct {
 	Count         int    `json:"count"`
 	Part          int    `json:"part"`
 	Available     int    `json:"available"`
-	Note          string `json:"note"`
 }

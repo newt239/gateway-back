@@ -30,7 +30,7 @@ func Enter() echo.HandlerFunc {
 			Available:      1,
 		}
 		db := database.ConnectGORM(user_id, password)
-		db.Table("session").Omit("exit_at", "exit_operation", "note").Create(&sessionEx)
+		db.Table("session").Omit("exit_at", "exit_operation").Create(&sessionEx)
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -102,5 +102,4 @@ type session struct {
 	ExitAt         time.Time `json:"exit_at"`
 	ExitOperation  string    `json:"exit_operation"`
 	Available      int       `json:"available"`
-	Note           string    `json:"note"`
 }
