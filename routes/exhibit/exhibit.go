@@ -1,7 +1,6 @@
 package exhibitRoute
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -107,7 +106,7 @@ func CurrentEachExhibit() echo.HandlerFunc {
 			EnterAt   string `json:"enter_at"`
 		}
 		var result []currentEachExhibitParam
-		db.Raw(fmt.Sprintf("SELECT session.guest_id AS id, session.session_id, guest_type, enter_at FROM session INNER JOIN guest ON session.guest_id = guest.guest_id WHERE session.exhibit_id='%s' AND session.is_finished = 0;", exhibit_id)).Scan(&result)
+		db.Raw("SELECT session.guest_id AS id, session.session_id, guest_type, enter_at FROM session INNER JOIN guest ON session.guest_id = guest.guest_id WHERE session.exhibit_id= ? AND session.is_finished = 0;", exhibit_id).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)

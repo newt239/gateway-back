@@ -1,7 +1,6 @@
 package adminRoute
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -47,17 +46,11 @@ func DeleteExhibit() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-		db.Exec(fmt.Sprintf("DELETE FROM gateway.exhibit WHERE exhibit_id='%s';", c.Param("exhibit_id")))
+		db.Exec("DELETE FROM gateway.exhibit WHERE exhibit_id= ? ;", c.Param("exhibit_id"))
 		db.Close()
 
 		return c.NoContent(http.StatusOK) // status code 200で何も返さない
 	}
-}
-
-type user struct {
-	UserId      string `json:"user_id"`
-	DisplayName string `json:"display_name"`
-	UserType    string `json:"user_type"`
 }
 
 type exhibit struct {
