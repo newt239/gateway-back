@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 
 	activityRoute "github.com/newt239/gateway-back/routes/activity"
 	authRoute "github.com/newt239/gateway-back/routes/auth"
@@ -9,6 +10,7 @@ import (
 	guestRoute "github.com/newt239/gateway-back/routes/guest"
 	reservationRoute "github.com/newt239/gateway-back/routes/reservation"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -20,6 +22,9 @@ func Hello() echo.HandlerFunc {
 }
 
 func main() {
+	godotenv.Load(".env")
+	signature := os.Getenv("SIGNATURE")
+
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowCredentials: true,
@@ -42,28 +47,28 @@ func main() {
 
 	auth := v1.Group("/auth")
 	auth.POST("/login", authRoute.Login())
-	auth.Use(middleware.JWT([]byte("secret")))
+	auth.Use(middleware.JWT([]byte(signature)))
 	auth.GET("/me", authRoute.Me())
 
 	activity := v1.Group("/activity")
-	activity.Use(middleware.JWT([]byte("secret")))
+	activity.Use(middleware.JWT([]byte(signature)))
 	activity.POST("/enter", activityRoute.Enter())
 	activity.POST("/exit", activityRoute.Exit())
 	activity.GET("/history/:from", activityRoute.History())
 
 	guest := v1.Group("/guest")
-	guest.Use(middleware.JWT([]byte("secret")))
+	guest.Use(middleware.JWT([]byte(signature)))
 	guest.GET("/info/:guest_id", guestRoute.Info())
 	guest.GET("/activity/:guest_id", guestRoute.Activity())
 	guest.POST("/register", guestRoute.Register())
 	guest.POST("/revoke", guestRoute.Revoke())
 
 	reservation := v1.Group("/reservation")
-	reservation.Use(middleware.JWT([]byte("secret")))
+	reservation.Use(middleware.JWT([]byte(signature)))
 	reservation.GET("/info/:reservation_id", reservationRoute.Info())
 
 	exhibit := v1.Group("/exhibit")
-	exhibit.Use(middleware.JWT([]byte("secret")))
+	exhibit.Use(middleware.JWT([]byte(signature)))
 	exhibit.GET("/list", exhibitRoute.ExhibitList())
 	exhibit.GET("/info", exhibitRoute.InfoAllExhibit())
 	exhibit.GET("/info/:exhibit_id", exhibitRoute.InfoEachExhibit())

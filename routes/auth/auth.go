@@ -2,11 +2,13 @@ package authRoute
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/newt239/gateway-back/database"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 )
 
@@ -22,7 +24,11 @@ func Login() echo.HandlerFunc {
 		claims["user_id"] = user_id
 		claims["password"] = password
 		claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-		tokenString, err := token.SignedString([]byte("secret"))
+
+		godotenv.Load(".env")
+		signature := os.Getenv("SIGNATURE")
+
+		tokenString, err := token.SignedString([]byte(signature))
 		if err != nil {
 			return err
 		}
