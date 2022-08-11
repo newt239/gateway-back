@@ -19,6 +19,10 @@ func Login() echo.HandlerFunc {
 			return err
 		}
 		user_id, password := loginPostParam.UserId, loginPostParam.Password
+
+		db := database.ConnectGORM(user_id, password)
+		db.Close()
+
 		token := jwt.New(jwt.SigningMethodHS256)
 		claims := token.Claims.(jwt.MapClaims)
 		claims["user_id"] = user_id
