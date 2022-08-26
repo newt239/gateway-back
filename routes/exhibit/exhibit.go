@@ -97,7 +97,7 @@ func CurrentAllExhibitData() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		type currentEachExhibitParam struct {
-			ID          string `json:"id"`
+			ExhibitID   string `json:"exhibit_id"`
 			ExhibitName string `json:"exhibit_name"`
 			GroupName   string `json:"group_name"`
 			RoomName    string `json:"room_name"`
