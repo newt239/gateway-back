@@ -37,7 +37,21 @@ func InfoAllExhibit() echo.HandlerFunc {
 			Count     int    `json:"count"`
 		}
 		var result []infoAllExhibitParam
-		db.Raw("select count(*) as count, guest.guest_type from gateway.session inner join gateway.guest on session.guest_id = guest.guest_id  where exhibit_id = 'entrance' and is_finished = 0 group by guest.guest_type;").Scan(&result)
+		db.Raw(`
+			select guest_type, count(*) as count 
+			from gateway.guest 
+			where guest_id in ( 
+				select r.guest_id 
+				from ( 
+					select guest_id, count(*) as count 
+					from gateway.activity 
+					where exhibit_id = 'entrance' 
+					group by guest_id 
+				) as r 
+				where mod(r.count, 2) = 1
+			)
+			group by guest_type;
+			`).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
@@ -52,12 +66,20 @@ func InfoEachExhibit() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		var result exhibit
 		db.Table("exhibit").Where("exhibit_id = ?", exhibit_id).First(&exhibit{}).Scan(&result)
-
 		type currentGuestListType struct {
 			GuestId string
 		}
 		var currentGuestListResult []currentGuestListType
-		db.Table("session").Select("guest_id").Where("exhibit_id = ?", exhibit_id).Where("is_finished = 0").Scan(&currentGuestListResult)
+		db.Raw(`
+			select r.guest_id 
+			from ( 
+				select guest_id, count(*) as count 
+				from gateway.activity 
+				where exhibit_id = ? 
+				group by guest_id 
+			) as r 
+			where mod(r.count, 2) = 1;
+		`, exhibit_id).Scan(&currentGuestListResult)
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -85,7 +107,21 @@ func CurrentAllExhibitData() echo.HandlerFunc {
 		}
 		var result []currentEachExhibitParam
 		db := database.ConnectGORM(user_id, password)
-		db.Raw("SELECT exhibit.exhibit_id AS id, exhibit_name, group_name, room_name, exhibit_type, ifnull(count, 0) as count, capacity FROM exhibit LEFT JOIN current ON exhibit.exhibit_id = current.exhibit_id;").Scan(&result)
+		db.Raw(`
+			select exhibit.exhibit_id, exhibit_name, group_name, room_name, exhibit_type, ifnull(count, 0) as count, capacity 
+			from gateway.exhibit 
+			left join (
+				select r.exhibit_id, count(*) as count 
+				from ( 
+					select guest_id, count(*) as count, exhibit_id 
+					from gateway.activity 
+					group by guest_id, exhibit_id 
+				) as r 
+				where mod(r.count, 2) = 1 
+				group by r.exhibit_id
+			) as current
+			on exhibit.exhibit_id = current.exhibit_id;
+		`).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
@@ -99,12 +135,25 @@ func CurrentEachExhibit() echo.HandlerFunc {
 		exhibit_id := c.Param("exhibit_id")
 		type currentEachExhibitParam struct {
 			ID        string `json:"id"`
-			SessionId string `json:"session_id"`
 			GuestType string `json:"guest_type"`
 			EnterAt   string `json:"enter_at"`
 		}
 		var result []currentEachExhibitParam
-		db.Raw("SELECT session.guest_id AS id, session.session_id, guest_type, enter_at FROM session INNER JOIN guest ON session.guest_id = guest.guest_id WHERE session.exhibit_id= ? AND session.is_finished = 0;", exhibit_id).Scan(&result)
+		db.Raw(`
+			select s.guest_id as id, guest_type, timestamp 
+			FROM ( 
+				select r.guest_id, r.timestamp 
+				from ( 
+					select guest_id, max(timestamp) as enter_at, count(*) as count 
+					from gateway.activity 
+					where exhibit_id = ? 
+					group by guest_id 
+				) as r 
+				where mod(r.count, 2) = 1 
+			) as s 
+			inner join guest 
+			on s.guest_id = guest.guest_id;
+		`, exhibit_id).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
@@ -120,7 +169,12 @@ func HistoryEachExhibit() echo.HandlerFunc {
 			Count int       `json:"count"`
 		}
 		var result []historyParam
-		db.Raw("SELECT timestamp(DATE_FORMAT(enter_at, '%Y-%m-%d %H:00:00')) AS time, COUNT(enter_at) AS count FROM gateway.session WHERE exhibit_id = ? AND DATE(enter_at) = ? GROUP BY time;", c.Param("exhibit_id"), c.Param("day")).Scan(&result)
+		db.Raw(`
+			select timestamp(DATE_FORMAT(timestamp, '%Y-%m-%d %H:00:00')) as time, COUNT(timestamp) as count 
+			from gateway.activity 
+			where exhibit_id = ? and activity_type = 'enter' and DATE(timestamp) = ? 
+			group by time;
+		`, c.Param("exhibit_id"), c.Param("day")).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
