@@ -29,14 +29,14 @@ func Info() echo.HandlerFunc {
 		var guestInfoResult guest
 		db.Table("guest").Where("guest_id = ?", guest_id).First(&guestInfoResult)
 
-		type sessionInfoResultParam struct {
+		type activityInfoResultParam struct {
 			ExhibitId string `json:"exhibit_id"`
 		}
-		var sessionInfoResult sessionInfoResultParam
+		var activityInfoResult activityInfoResultParam
 		exhibit_id := ""
-		err := db.Table("session").Select("exhibit_id").Where("guest_id = ?", guest_id).Where("is_finished = 0").Where("exhibit_id != 'entrance'").First(&sessionInfoResult).Error
+		err := db.Table("activity").Select("exhibit_id").Where("guest_id = ?", guest_id).Where("exhibit_id != 'entrance'").Order("timestamp desc").First(&activityInfoResult).Error
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			exhibit_id = sessionInfoResult.ExhibitId
+			exhibit_id = activityInfoResult.ExhibitId
 		}
 
 		db.Close()
@@ -57,13 +57,17 @@ func Activity() echo.HandlerFunc {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		guest_id := c.Param("guest_id")
 		type resultParam struct {
-			ExhibitId string `json:"exhibit_id"`
-			EnterAt   string `json:"enter_at"`
-			ExitAt    string `json:"exit_at"`
+			ExhibitId    string `json:"exhibit_id"`
+			ActivityType string `json:"activity_type"`
+			Timestamp    string `json:"timestamp"`
 		}
 		var result []resultParam
 		db := database.ConnectGORM(user_id, password)
-		db.Raw("select exhibit_id, enter_at, ifnull(exit_at, 'current') as exit_at from session where guest_id = ?;", guest_id).Scan(&result)
+		db.Raw(`
+			select exhibit_id, activity_type, timestamp 
+			from gateway.activity 
+			where guest_id = ?;
+		`, guest_id).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)
@@ -89,7 +93,7 @@ func Register() echo.HandlerFunc {
 		for _, guest_id := range registerPostData.GuestIdList {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
-			session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+			activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
 			db.Table("guest").Omit("exhibit_id", "revoke_at").Where("guest_id = ?", guest_id).Update(&guestParam{
 				ReservationId: registerPostData.ReservationId,
 				GuestType:     registerPostData.GuestType,
@@ -98,18 +102,19 @@ func Register() echo.HandlerFunc {
 				RegisterAt:    now,
 				Available:     1,
 			})
-			db.Table("session").Omit("exit_at", "exit_operation").Create(&sessionParam{
-				SessionId:      session_id,
-				GuestId:        guest_id,
-				ExhibitId:      "entrance",
-				EnterAt:        now,
-				EnterOperation: user_id,
-				Available:      1,
+			db.Table("activity").Create(&activity{
+				ActivityId:   activity_id,
+				GuestId:      guest_id,
+				ExhibitId:    "entrance",
+				ActivityType: "enter",
+				UserId:       user_id,
+				Timestamp:    now,
+				Available:    1,
 			})
 		}
 		db.Close()
 
-		return c.JSON(http.StatusOK, map[string]interface{}{})
+		return c.NoContent(http.StatusOK)
 	}
 }
 
@@ -132,7 +137,7 @@ func Revoke() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
 		db.Table("guest").Omit("exhibit_id", "revoke_at").Create(&guestParam{
 			ReservationId: registerPostData.ReservationId,
 			GuestId:       registerPostData.NewGuestId,
@@ -142,13 +147,14 @@ func Revoke() echo.HandlerFunc {
 			RegisterAt:    now,
 			Available:     1,
 		})
-		db.Table("session").Omit("exit_at", "exit_operation").Create(&sessionParam{
-			SessionId:      session_id,
-			GuestId:        registerPostData.NewGuestId,
-			ExhibitId:      "entrance",
-			EnterAt:        now,
-			EnterOperation: user_id,
-			Available:      1,
+		db.Table("activity").Create(&activity{
+			ActivityId:   activity_id,
+			GuestId:      registerPostData.NewGuestId,
+			ExhibitId:    "entrance",
+			ActivityType: "exit",
+			UserId:       user_id,
+			Timestamp:    now,
+			Available:    1,
 		})
 		if registerPostData.OldGuestId != "" {
 			db.Table("guest").Where("guest_id = ?", registerPostData.OldGuestId).Update(&guestParam{
@@ -174,14 +180,12 @@ type guestParam struct {
 	IsSpare       string    `json:"is_spare"`
 }
 
-type sessionParam struct {
-	SessionId      string    `json:"session_id"`
-	GuestId        string    `json:"guest_id"`
-	ExhibitId      string    `json:"exhibit_id"`
-	EnterAt        time.Time `json:"enter_at"`
-	EnterOperation string    `json:"enter_operation"`
-	IsFinished     int       `json:"is_finished"`
-	ExitAt         time.Time `json:"exit_at"`
-	ExitOperation  string    `json:"exit_operation"`
-	Available      int       `json:"available"`
+type activity struct {
+	ActivityId   string    `json:"activity_id"`
+	GuestId      string    `json:"guest_id"`
+	ExhibitId    string    `json:"exhibit_id"`
+	ActivityType string    `json:"activity_type"`
+	UserId       string    `json:"user_id"`
+	Timestamp    time.Time `json:"timestamp"`
+	Available    int       `json:"available"`
 }

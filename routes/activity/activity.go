@@ -96,8 +96,6 @@ func History() echo.HandlerFunc {
 		var activityList []activityHistoryListType
 		db.Table("activity").Where("timestamp > ?", t).Limit(100).Scan(&activityList)
 		db.Close()
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"content": activityList,
-		})
+		return c.JSON(http.StatusOK, activityList)
 	}
 }
