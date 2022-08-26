@@ -2,8 +2,6 @@
 
 backend of stay status record system for Sakae Higashi School Festival 2022.
 
-![version](https://img.shields.io/github/package-json/v/newt239/gateway-back?style=flat)
-
 ## environment
 
 - Go 1.18

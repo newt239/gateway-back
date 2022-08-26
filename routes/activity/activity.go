@@ -88,10 +88,11 @@ func History() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		t, _ := time.Parse("2006-01-02T15:04:05+09:00", c.Param("from"))
 		type activityHistoryListType struct {
-			ActivityId string `json:"activity_id"`
-			GuestId    string `json:"guest_id"`
-			ExhibitId  string `json:"exhibit_id"`
-			Timestamp  string `json:"timestamp"`
+			ActivityId   string `json:"activity_id"`
+			GuestId      string `json:"guest_id"`
+			ExhibitId    string `json:"exhibit_id"`
+			ActivityType string `json:"activity_type"`
+			Timestamp    string `json:"timestamp"`
 		}
 		var activityList []activityHistoryListType
 		db.Table("activity").Where("timestamp > ?", t).Limit(100).Scan(&activityList)
