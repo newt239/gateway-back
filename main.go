@@ -54,6 +54,7 @@ func main() {
 	activity.Use(middleware.JWT([]byte(signature)))
 	activity.POST("/enter", activityRoute.Enter())
 	activity.POST("/exit", activityRoute.Exit())
+	activity.POST("/exit/batch", activityRoute.BatchExit())
 	activity.GET("/history/:from", activityRoute.History())
 
 	guest := v1.Group("/guest")

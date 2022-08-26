@@ -1,8 +1,10 @@
 package activityRoute
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/newt239/gateway-back/database"
@@ -79,6 +81,30 @@ func Exit() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"activity_id": activity_id,
 		})
+	}
+}
+
+func BatchExit() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
+		exitPostParams := []activityPostParam{}
+		if err := c.Bind(&exitPostParams); err != nil {
+			return err
+		}
+		jst, _ := time.LoadLocation("Asia/Tokyo")
+		now := time.Now().In(jst)
+		str := "INSERT INTO gateway.activity (`activity_id`, `exhibit_id`, `guest_id`, `activity_type`, `timestamp`, `user_id`, `available`) VALUES "
+		var s []string
+		for _, u := range exitPostParams {
+			activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+			q := fmt.Sprintf("('%s', '%s', '%s', 'exit', '%s', '%s', 1), ", activity_id, u.ExhibitId, u.GuestId, now, user_id)
+			s = append(s, q)
+		}
+		query := strings.TrimRight(strings.Join(s, ""), ",") + ";"
+		db := database.ConnectGORM(user_id, password)
+		db.Raw(str + query)
+		db.Close()
+		return c.NoContent(http.StatusOK)
 	}
 }
 
