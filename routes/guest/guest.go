@@ -63,7 +63,7 @@ func Activity() echo.HandlerFunc {
 		}
 		var result []resultParam
 		db := database.ConnectGORM(user_id, password)
-		db.Raw("select exhibit_id, enter_at, ifnull(exit_at, 'current') as exit_at from session where guest_id = ? order by enter_at;", guest_id).Scan(&result)
+		db.Raw("select exhibit_id, enter_at, ifnull(exit_at, 'current') as exit_at from session where guest_id = ?;", guest_id).Scan(&result)
 		db.Close()
 
 		return c.JSON(http.StatusOK, result)

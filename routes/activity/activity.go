@@ -11,6 +11,21 @@ import (
 	"github.com/labstack/echo"
 )
 
+type activity struct {
+	ActivityId   string    `json:"activity_id"`
+	GuestId      string    `json:"guest_id"`
+	ExhibitId    string    `json:"exhibit_id"`
+	ActivityType string    `json:"activity_type"`
+	UserId       string    `json:"user_id"`
+	Timestamp    time.Time `json:"timestamp"`
+	Available    int       `json:"available"`
+}
+
+type activityPostParam struct {
+	GuestId   string `json:"guest_id"`
+	ExhibitId string `json:"exhibit_id"`
+}
+
 func Enter() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
@@ -20,21 +35,21 @@ func Enter() echo.HandlerFunc {
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		session_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
-		sessionEx := session{
-			SessionId:      session_id,
-			ExhibitId:      enterPostParam.ExhibitId,
-			GuestId:        enterPostParam.GuestId,
-			EnterAt:        now,
-			EnterOperation: user_id,
-			Available:      1,
+		activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		activityEx := activity{
+			ActivityId:   activity_id,
+			ExhibitId:    enterPostParam.ExhibitId,
+			GuestId:      enterPostParam.GuestId,
+			ActivityType: "enter",
+			Timestamp:    now,
+			UserId:       user_id,
+			Available:    1,
 		}
 		db := database.ConnectGORM(user_id, password)
-		db.Table("session").Omit("exit_at", "exit_operation").Create(&sessionEx)
+		db.Table("activity").Create(&activityEx)
 		db.Close()
-
 		return c.JSON(http.StatusOK, map[string]interface{}{
-			"session_id": session_id,
+			"activity_id": activity_id,
 		})
 	}
 }
@@ -48,17 +63,22 @@ func Exit() echo.HandlerFunc {
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		sessionEx := session{
-			IsFinished:    1,
-			ExitAt:        now,
-			ExitOperation: user_id,
+		activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		activityEx := activity{
+			ActivityId:   activity_id,
+			ExhibitId:    exitPostParam.ExhibitId,
+			GuestId:      exitPostParam.GuestId,
+			ActivityType: "exit",
+			Timestamp:    now,
+			UserId:       user_id,
+			Available:    1,
 		}
-		var result session
 		db := database.ConnectGORM(user_id, password)
-		db.Table("session").Where("guest_id = ?", exitPostParam.GuestId).Where("exhibit_id = ?", exitPostParam.ExhibitId).Where("is_finished = 0").Updates(&sessionEx).Scan(&result)
+		db.Table("activity").Create(&activityEx)
 		db.Close()
-
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"activity_id": activity_id,
+		})
 	}
 }
 
@@ -66,7 +86,6 @@ func History() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user_id, password := database.CheckJwt(c.Get("user").(*jwt.Token))
 		db := database.ConnectGORM(user_id, password)
-
 		t, _ := time.Parse("2006-01-02T15:04:05+09:00", c.Param("from"))
 		type activityHistoryListType struct {
 			SessionId string `json:"session_id"`
@@ -79,27 +98,9 @@ func History() echo.HandlerFunc {
 		var exitActivityList []activityHistoryListType
 		db.Table("exit_activity").Where("timestamp > ?", t).Limit(50).Scan(&exitActivityList)
 		db.Close()
-
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"enter": enterActivityList,
 			"exit":  exitActivityList,
 		})
 	}
-}
-
-type activityPostParam struct {
-	ExhibitId string `json:"exhibit_id"`
-	GuestId   string `json:"guest_id"`
-}
-
-type session struct {
-	SessionId      string    `json:"session_id"`
-	ExhibitId      string    `json:"exhibit_id"`
-	GuestId        string    `json:"guest_id"`
-	EnterAt        time.Time `json:"enter_at"`
-	EnterOperation string    `json:"enter_operation"`
-	IsFinished     int       `json:"is_finished"`
-	ExitAt         time.Time `json:"exit_at"`
-	ExitOperation  string    `json:"exit_operation"`
-	Available      int       `json:"available"`
 }
