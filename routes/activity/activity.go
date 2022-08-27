@@ -87,7 +87,7 @@ func BatchExit() echo.HandlerFunc {
 			return err
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
-		str := "insert into gateway.activity (`activity_id`, `exhibit_id`, `guest_id`, `activity_type`, `timestamp`, `user_id`, `available`) values "
+		str := "insert into gateway.activity (activity_id, exhibit_id, guest_id, activity_type, timestamp, user_id, available) values "
 		var s []string
 		for _, u := range exitPostParams {
 			now := time.Now().In(jst)
@@ -95,10 +95,9 @@ func BatchExit() echo.HandlerFunc {
 			q := fmt.Sprintf("(%d, '%s', '%s', 'exit', now(), '%s', 1), ", activity_id, u.ExhibitId, u.GuestId, user_id)
 			s = append(s, q)
 		}
-		query := strings.TrimRight(strings.Join(s, ""), ",") + ";"
-		fmt.Println(str + query)
+		query := strings.TrimRight(strings.Join(s, ""), ", ") + ";"
 		db := database.ConnectGORM(user_id, password)
-		db.Raw(str + query)
+		db.Exec(str + query)
 		db.Close()
 		return c.NoContent(http.StatusOK)
 	}

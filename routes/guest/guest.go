@@ -34,7 +34,7 @@ func Info() echo.HandlerFunc {
 		}
 		var activityInfoResult activityInfoResultParam
 		exhibit_id := ""
-		err := db.Table("activity").Select("exhibit_id", "activity_type").Where("guest_id = ?", guest_id).Where("exhibit_id != 'entrance'").Order("timestamp desc").First(&activityInfoResult).Error
+		err := db.Table("activity").Select("exhibit_id, activity_type").Where("guest_id = ?", guest_id).Where("exhibit_id != 'entrance'").Order("timestamp desc").First(&activityInfoResult).Error
 		if !errors.Is(err, gorm.ErrRecordNotFound) && activityInfoResult.ActivityType == "enter" {
 			exhibit_id = activityInfoResult.ExhibitId
 		}
