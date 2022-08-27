@@ -140,9 +140,9 @@ func CurrentEachExhibit() echo.HandlerFunc {
 		}
 		var result []currentEachExhibitParam
 		db.Raw(`
-			select s.guest_id as id, guest_type, timestamp 
+			select s.guest_id as id, guest_type, s.enter_at 
 			FROM ( 
-				select r.guest_id, r.timestamp 
+				select r.guest_id, r.enter_at 
 				from ( 
 					select guest_id, max(timestamp) as enter_at, count(*) as count 
 					from gateway.activity 

@@ -3,7 +3,6 @@ package guestRoute
 import (
 	"errors"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -93,7 +92,7 @@ func Register() echo.HandlerFunc {
 		for _, guest_id := range registerPostData.GuestIdList {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
-			activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+			activity_id := now.UnixMilli()
 			db.Table("guest").Omit("exhibit_id", "revoke_at").Where("guest_id = ?", guest_id).Update(&guestParam{
 				ReservationId: registerPostData.ReservationId,
 				GuestType:     registerPostData.GuestType,
@@ -137,7 +136,7 @@ func Revoke() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		activity_id := now.UnixMilli()
 		db.Table("guest").Omit("exhibit_id", "revoke_at").Create(&guestParam{
 			ReservationId: registerPostData.ReservationId,
 			GuestId:       registerPostData.NewGuestId,
@@ -181,7 +180,7 @@ type guestParam struct {
 }
 
 type activity struct {
-	ActivityId   string    `json:"activity_id"`
+	ActivityId   int64     `json:"activity_id"`
 	GuestId      string    `json:"guest_id"`
 	ExhibitId    string    `json:"exhibit_id"`
 	ActivityType string    `json:"activity_type"`

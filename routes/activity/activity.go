@@ -3,7 +3,6 @@ package activityRoute
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 )
 
 type activity struct {
-	ActivityId   string    `json:"activity_id"`
+	ActivityId   int64     `json:"activity_id"`
 	GuestId      string    `json:"guest_id"`
 	ExhibitId    string    `json:"exhibit_id"`
 	ActivityType string    `json:"activity_type"`
@@ -37,7 +36,7 @@ func Enter() echo.HandlerFunc {
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		activity_id := now.UnixMilli()
 		activityEx := activity{
 			ActivityId:   activity_id,
 			ExhibitId:    enterPostParam.ExhibitId,
@@ -50,9 +49,7 @@ func Enter() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		db.Table("activity").Create(&activityEx)
 		db.Close()
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"activity_id": activity_id,
-		})
+		return c.NoContent(http.StatusOK)
 	}
 }
 
@@ -65,7 +62,7 @@ func Exit() echo.HandlerFunc {
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
+		activity_id := now.UnixMilli()
 		activityEx := activity{
 			ActivityId:   activity_id,
 			ExhibitId:    exitPostParam.ExhibitId,
@@ -78,9 +75,7 @@ func Exit() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		db.Table("activity").Create(&activityEx)
 		db.Close()
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"activity_id": activity_id,
-		})
+		return c.NoContent(http.StatusOK)
 	}
 }
 
@@ -92,15 +87,16 @@ func BatchExit() echo.HandlerFunc {
 			return err
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
-		now := time.Now().In(jst)
-		str := "INSERT INTO gateway.activity (`activity_id`, `exhibit_id`, `guest_id`, `activity_type`, `timestamp`, `user_id`, `available`) VALUES "
+		str := "insert into gateway.activity (`activity_id`, `exhibit_id`, `guest_id`, `activity_type`, `timestamp`, `user_id`, `available`) values "
 		var s []string
 		for _, u := range exitPostParams {
-			activity_id := "s" + strconv.FormatInt(now.UnixMilli(), 10)
-			q := fmt.Sprintf("('%s', '%s', '%s', 'exit', '%s', '%s', 1), ", activity_id, u.ExhibitId, u.GuestId, now, user_id)
+			now := time.Now().In(jst)
+			activity_id := now.UnixMilli()
+			q := fmt.Sprintf("(%d, '%s', '%s', 'exit', now(), '%s', 1), ", activity_id, u.ExhibitId, u.GuestId, user_id)
 			s = append(s, q)
 		}
 		query := strings.TrimRight(strings.Join(s, ""), ",") + ";"
+		fmt.Println(str + query)
 		db := database.ConnectGORM(user_id, password)
 		db.Raw(str + query)
 		db.Close()
@@ -121,7 +117,12 @@ func History() echo.HandlerFunc {
 			Timestamp    string `json:"timestamp"`
 		}
 		var activityList []activityHistoryListType
-		db.Table("activity").Where("timestamp > ?", t).Limit(100).Scan(&activityList)
+		db.Raw(`
+			select activity_id, guest_id, exhibit_id, activity_type, timestamp 
+			from gateway.activity 
+			where timestamp > ? 
+			limit 100
+		`, t).Scan(&activityList)
 		db.Close()
 		return c.JSON(http.StatusOK, activityList)
 	}
