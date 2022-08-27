@@ -29,12 +29,13 @@ func Info() echo.HandlerFunc {
 		db.Table("guest").Where("guest_id = ?", guest_id).First(&guestInfoResult)
 
 		type activityInfoResultParam struct {
-			ExhibitId string `json:"exhibit_id"`
+			ExhibitId    string `json:"exhibit_id"`
+			ActivityType string `json:"activity_type"`
 		}
 		var activityInfoResult activityInfoResultParam
 		exhibit_id := ""
-		err := db.Table("activity").Select("exhibit_id").Where("guest_id = ?", guest_id).Where("exhibit_id != 'entrance'").Order("timestamp desc").First(&activityInfoResult).Error
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+		err := db.Table("activity").Select("exhibit_id", "activity_type").Where("guest_id = ?", guest_id).Where("exhibit_id != 'entrance'").Order("timestamp desc").First(&activityInfoResult).Error
+		if !errors.Is(err, gorm.ErrRecordNotFound) && activityInfoResult.ActivityType == "enter" {
 			exhibit_id = activityInfoResult.ExhibitId
 		}
 
