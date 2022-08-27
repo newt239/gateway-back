@@ -90,10 +90,10 @@ func Register() echo.HandlerFunc {
 		}
 
 		db := database.ConnectGORM(user_id, password)
-		for _, guest_id := range registerPostData.GuestIdList {
+		for i, guest_id := range registerPostData.GuestIdList {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
-			activity_id := now.UnixMilli()
+			activity_id := now.UnixMilli()*1000 + int64(i)
 			db.Table("guest").Omit("exhibit_id", "revoke_at").Where("guest_id = ?", guest_id).Update(&guestParam{
 				ReservationId: registerPostData.ReservationId,
 				GuestType:     registerPostData.GuestType,
@@ -137,7 +137,7 @@ func Revoke() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := now.UnixMilli()
+		activity_id := now.UnixMilli() * 1000
 		db.Table("guest").Omit("exhibit_id", "revoke_at").Create(&guestParam{
 			ReservationId: registerPostData.ReservationId,
 			GuestId:       registerPostData.NewGuestId,

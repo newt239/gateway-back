@@ -36,7 +36,7 @@ func Enter() echo.HandlerFunc {
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := now.UnixMilli()
+		activity_id := now.UnixMilli() * 1000
 		activityEx := activity{
 			ActivityId:   activity_id,
 			ExhibitId:    enterPostParam.ExhibitId,
@@ -62,7 +62,7 @@ func Exit() echo.HandlerFunc {
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := now.UnixMilli()
+		activity_id := now.UnixMilli() * 1000
 		activityEx := activity{
 			ActivityId:   activity_id,
 			ExhibitId:    exitPostParam.ExhibitId,
@@ -89,9 +89,9 @@ func BatchExit() echo.HandlerFunc {
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		str := "insert into gateway.activity (activity_id, exhibit_id, guest_id, activity_type, timestamp, user_id, available) values "
 		var s []string
-		for _, u := range exitPostParams {
+		for i, u := range exitPostParams {
 			now := time.Now().In(jst)
-			activity_id := now.UnixMilli()
+			activity_id := now.UnixMilli()*1000 + int64(i)
 			q := fmt.Sprintf("(%d, '%s', '%s', 'exit', now(), '%s', 1), ", activity_id, u.ExhibitId, u.GuestId, user_id)
 			s = append(s, q)
 		}
