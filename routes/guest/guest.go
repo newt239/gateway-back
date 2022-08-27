@@ -95,7 +95,7 @@ func Register() echo.HandlerFunc {
 		for i, guest_id := range registerPostData.GuestIdList {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
-			activity_id := now.UnixMilli()*1000 + 400 + int64(i)
+			activity_id := now.UnixMilli()*1000 + 300 + int64(i)
 			db.Table("guest").Omit("exhibit_id", "revoke_at").Where("guest_id = ?", guest_id).Update(&guestParam{
 				ReservationId: registerPostData.ReservationId,
 				GuestType:     registerPostData.GuestType,
