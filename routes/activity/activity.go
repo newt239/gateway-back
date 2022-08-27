@@ -92,7 +92,7 @@ func BatchExit() echo.HandlerFunc {
 		for i, u := range exitPostParams {
 			now := time.Now().In(jst)
 			activity_id := now.UnixMilli()*1000 + int64(i)
-			q := fmt.Sprintf("(%d, '%s', '%s', 'exit', now(), '%s', 1), ", activity_id, u.ExhibitId, u.GuestId, user_id)
+			q := fmt.Sprintf("(%d, '%s', '%s', 'exit', '%s', '%s', 1), ", activity_id, u.ExhibitId, u.GuestId, now.Format("2006-01-02 15:04:05"), user_id)
 			s = append(s, q)
 		}
 		query := strings.TrimRight(strings.Join(s, ""), ", ") + ";"
