@@ -2,6 +2,7 @@ package guestRoute
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -138,30 +139,29 @@ func Revoke() echo.HandlerFunc {
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
 		activity_id := now.UnixMilli() * 1000
-		db.Table("guest").Omit("exhibit_id", "revoke_at").Create(&guestParam{
+		db.Table("guest").Where("guest_id = ?", registerPostData.NewGuestId).Update(&guestParam{
 			ReservationId: registerPostData.ReservationId,
 			GuestId:       registerPostData.NewGuestId,
 			GuestType:     registerPostData.GuestType,
 			Part:          registerPostData.Part,
 			UserId:        user_id,
 			RegisterAt:    now,
+			IsSpare:       1,
 			Available:     1,
 		})
 		db.Table("activity").Create(&activity{
 			ActivityId:   activity_id,
 			GuestId:      registerPostData.NewGuestId,
 			ExhibitId:    "entrance",
-			ActivityType: "exit",
+			ActivityType: "enter",
 			UserId:       user_id,
 			Timestamp:    now,
 			Available:    1,
 		})
-		if registerPostData.OldGuestId != "" {
-			db.Table("guest").Where("guest_id = ?", registerPostData.OldGuestId).Update(&guestParam{
-				RevokeAt:  now,
-				Available: 0,
-			})
-		}
+		db.Exec(fmt.Sprintf(`
+			update gateway.guest 
+			set revoke_at = '%s', available = 0 where guest_id = '%s';
+		`, now.Format("2006-01-02 15:04:05"), registerPostData.OldGuestId))
 		db.Close()
 
 		return c.NoContent(http.StatusOK)
@@ -177,7 +177,7 @@ type guestParam struct {
 	RegisterAt    time.Time `json:"register_at"`
 	RevokeAt      time.Time `json:"revoke_at"`
 	Available     int       `json:"available"`
-	IsSpare       string    `json:"is_spare"`
+	IsSpare       int       `json:"is_spare"`
 }
 
 type activity struct {
