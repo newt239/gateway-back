@@ -21,7 +21,7 @@ func Info() echo.HandlerFunc {
 			IsSpare int    `json:"is_spare"`
 		}
 		var reservationIdListResult []reservationIdListType
-		db.Table("guest").Select([]string{"guest_id", "is_spare"}).Where("reservation_id = ?", c.Param("reservation_id")).Where("available = 1").Scan(&reservationIdListResult)
+		db.Table("guest").Select("guest_id, is_spare").Where("reservation_id = ?", c.Param("reservation_id")).Where("available = 1").Scan(&reservationIdListResult)
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
