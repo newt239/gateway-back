@@ -2,6 +2,7 @@ package activityRoute
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -36,7 +37,8 @@ func Enter() echo.HandlerFunc {
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := now.UnixMilli() * 1000
+		rand.Seed(time.Now().UnixNano())
+		activity_id := now.UnixMilli()*1000 + rand.Int63n(300)
 		activityEx := activity{
 			ActivityId:   activity_id,
 			ExhibitId:    enterPostParam.ExhibitId,
@@ -62,7 +64,8 @@ func Exit() echo.HandlerFunc {
 		}
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := now.UnixMilli() * 1000
+		rand.Seed(time.Now().UnixNano())
+		activity_id := now.UnixMilli()*1000 + rand.Int63n(300)
 		activityEx := activity{
 			ActivityId:   activity_id,
 			ExhibitId:    exitPostParam.ExhibitId,
@@ -91,7 +94,7 @@ func BatchExit() echo.HandlerFunc {
 		var s []string
 		for i, u := range exitPostParams {
 			now := time.Now().In(jst)
-			activity_id := now.UnixMilli()*1000 + int64(i)
+			activity_id := now.UnixMilli()*1000 + 500 + int64(i)
 			q := fmt.Sprintf("(%d, '%s', '%s', 'exit', '%s', '%s', 1), ", activity_id, u.ExhibitId, u.GuestId, now.Format("2006-01-02 15:04:05"), user_id)
 			s = append(s, q)
 		}

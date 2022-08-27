@@ -3,6 +3,7 @@ package guestRoute
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -35,7 +36,7 @@ func Info() echo.HandlerFunc {
 		}
 		var activityInfoResult activityInfoResultParam
 		exhibit_id := ""
-		err := db.Table("activity").Select("exhibit_id, activity_type").Where("guest_id = ?", guest_id).Where("exhibit_id != 'entrance'").Order("timestamp desc").First(&activityInfoResult).Error
+		err := db.Table("activity").Select("exhibit_id, activity_type").Where("guest_id = ?", guest_id).Where("exhibit_id != 'entrance'").Order("activity_id desc").First(&activityInfoResult).Error
 		if !errors.Is(err, gorm.ErrRecordNotFound) && activityInfoResult.ActivityType == "enter" {
 			exhibit_id = activityInfoResult.ExhibitId
 		}
@@ -94,7 +95,7 @@ func Register() echo.HandlerFunc {
 		for i, guest_id := range registerPostData.GuestIdList {
 			jst, _ := time.LoadLocation("Asia/Tokyo")
 			now := time.Now().In(jst)
-			activity_id := now.UnixMilli()*1000 + int64(i)
+			activity_id := now.UnixMilli()*1000 + 400 + int64(i)
 			db.Table("guest").Omit("exhibit_id", "revoke_at").Where("guest_id = ?", guest_id).Update(&guestParam{
 				ReservationId: registerPostData.ReservationId,
 				GuestType:     registerPostData.GuestType,
@@ -138,7 +139,8 @@ func Revoke() echo.HandlerFunc {
 		db := database.ConnectGORM(user_id, password)
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		now := time.Now().In(jst)
-		activity_id := now.UnixMilli() * 1000
+		rand.Seed(time.Now().UnixNano())
+		activity_id := now.UnixMilli()*1000 + rand.Int63n(300)
 		db.Table("guest").Where("guest_id = ?", registerPostData.NewGuestId).Update(&guestParam{
 			ReservationId: registerPostData.ReservationId,
 			GuestId:       registerPostData.NewGuestId,
