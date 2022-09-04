@@ -123,7 +123,8 @@ func History() echo.HandlerFunc {
 			select activity_id, guest_id, exhibit_id, activity_type, timestamp 
 			from gateway.activity 
 			where timestamp > ? 
-			limit 100
+			order by activity_id desc
+			limit 50
 		`, t).Scan(&activityList)
 		db.Close()
 		return c.JSON(http.StatusOK, activityList)
