@@ -83,6 +83,7 @@ func InfoEachExhibit() echo.HandlerFunc {
 		db.Close()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
+			"status":       result.Status,
 			"exhibit_id":   result.ExhibitId,
 			"exhibit_name": result.ExhibitName,
 			"exhibit_type": result.ExhibitType,
@@ -104,11 +105,12 @@ func CurrentAllExhibitData() echo.HandlerFunc {
 			ExhibitType string `json:"exhibit_type"`
 			Count       int    `json:"count"`
 			Capacity    int    `json:"capacity"`
+			Status      int    `json:"status"`
 		}
 		var result []currentEachExhibitParam
 		db := database.ConnectGORM(user_id, password)
 		db.Raw(`
-			select exhibit.exhibit_id, exhibit_name, group_name, room_name, exhibit_type, ifnull(count, 0) as count, capacity 
+			select exhibit.exhibit_id, exhibit_name, group_name, room_name, exhibit_type, ifnull(count, 0) as count, capacity, status 
 			from gateway.exhibit 
 			left join (
 				select r.exhibit_id, count(*) as count 
@@ -182,6 +184,7 @@ func HistoryEachExhibit() echo.HandlerFunc {
 }
 
 type exhibit struct {
+	Status      int    `json:"status"`
 	ExhibitId   string `json:"exhibit_id"`
 	ExhibitName string `json:"exhibit_name"`
 	RoomName    string `json:"room_name"`
